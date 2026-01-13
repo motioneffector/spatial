@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@motioneffector/spatial - Demo</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    h1 { color: #333; }
+    h2 { color: #555; margin-top: 0; }
+    section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: white;
+    }
+    .test-pass { color: green; }
+    .test-fail { color: red; font-weight: bold; }
+    .test-output {
+      background: #f5f5f5;
+      padding: 15px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    button {
+      padding: 8px 16px;
+      margin: 4px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: white;
+    }
+    button:hover {
+      background: #f0f0f0;
+    }
+    .run-all {
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      padding: 12px 24px;
+      border: none;
+    }
+    .run-all:hover {
+      background: #45a049;
+    }
+    .summary {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    input[type="text"], input[type="number"] {
+      padding: 6px;
+      margin: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .controls {
+      margin: 10px 0;
+    }
+    .output-area {
+      background: #f9f9f9;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 10px;
+      min-height: 50px;
+    }
+    label {
+      display: inline-block;
+      margin-right: 5px;
+      font-weight: 500;
+    }
+    .grid-viz {
+      display: inline-block;
+      margin: 10px 0;
+    }
+    .grid-cell {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 1px solid #ccc;
+      text-align: center;
+      line-height: 40px;
+      background: white;
+    }
+    .grid-cell.occupied {
+      background: #e3f2fd;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>@motioneffector/spatial Demo</h1>
+  <p>Interactive demonstration of the directional graph navigation system for room-based spatial navigation.</p>
+
+  <section id="test-runner">
+    <h2>Automated Tests</h2>
+    <button class="run-all" onclick="runAllTests()">Run All Tests</button>
+    <button onclick="clearResults()">Clear Results</button>
+    <div class="summary" id="summary"></div>
+    <div class="test-output" id="test-output"></div>
+  </section>
+
+  <section>
+    <h2>Interactive: Basic Node Management</h2>
+    <p>Create and manage nodes in the spatial graph.</p>
+    <div class="controls">
+      <label>Node ID:</label>
+      <input type="text" id="nodeId" placeholder="room1" value="room1">
+      <label>Name:</label>
+      <input type="text" id="nodeName" placeholder="Living Room" value="Living Room">
+      <button onclick="interactiveCreateNode()">Create Node</button>
+      <button onclick="interactiveRemoveNode()">Remove Node</button>
+      <button onclick="interactiveGetNode()">Get Node</button>
+      <button onclick="interactiveListNodes()">List All Nodes</button>
+    </div>
+    <div class="output-area" id="nodeOutput"></div>
+  </section>
+
+  <section>
+    <h2>Interactive: Connections & Navigation</h2>
+    <p>Connect nodes and navigate between them.</p>
+    <div class="controls">
+      <label>From:</label>
+      <input type="text" id="connectFrom" placeholder="room1" value="room1">
+      <label>Direction:</label>
+      <input type="text" id="connectDir" placeholder="NORTH" value="NORTH">
+      <label>To:</label>
+      <input type="text" id="connectTo" placeholder="room2" value="room2">
+      <button onclick="interactiveConnect()">Connect</button>
+      <button onclick="interactiveGetExits()">Get Exits</button>
+      <button onclick="interactiveGetDestination()">Get Destination</button>
+    </div>
+    <div class="output-area" id="connectionOutput"></div>
+  </section>
+
+  <section>
+    <h2>Interactive: Gates & Traversal</h2>
+    <p>Add gates with locks, keys, and conditions to connections.</p>
+    <div class="controls">
+      <label>From:</label>
+      <input type="text" id="gateFrom" placeholder="room1" value="room1">
+      <label>Direction:</label>
+      <input type="text" id="gateDir" placeholder="NORTH" value="NORTH">
+      <label>Locked:</label>
+      <input type="checkbox" id="gateLocked">
+      <label>Key ID:</label>
+      <input type="text" id="gateKey" placeholder="gold_key">
+      <button onclick="interactiveSetGate()">Set Gate</button>
+      <button onclick="interactiveCanTraverse()">Can Traverse?</button>
+    </div>
+    <div class="output-area" id="gateOutput"></div>
+  </section>
+
+  <section>
+    <h2>Interactive: Pathfinding</h2>
+    <p>Find paths between nodes in the graph.</p>
+    <div class="controls">
+      <label>Start:</label>
+      <input type="text" id="pathStart" placeholder="room1" value="room1">
+      <label>End:</label>
+      <input type="text" id="pathEnd" placeholder="room3" value="room3">
+      <button onclick="interactiveFindPath()">Find Path</button>
+      <button onclick="interactiveGetDistance()">Get Distance</button>
+      <button onclick="interactiveGetReachable()">Get Reachable</button>
+    </div>
+    <div class="output-area" id="pathOutput"></div>
+  </section>
+
+  <script>
+    // ============================================
+    // INLINED LIBRARY CODE (from dist/index.js)
+    // ============================================
+    class fe extends Error {
+      constructor(c) {
+        super(c), this.name = "SpatialError", Object.setPrototypeOf(this, new.target.prototype);
+      }
+    }
+    class T extends fe {
+      constructor(c, a) {
+        super(c), this.field = a, this.name = "ValidationError";
+      }
+    }
+    const R = {
+      // Compass directions
+      NORTH: "NORTH",
+      NORTHEAST: "NORTHEAST",
+      EAST: "EAST",
+      SOUTHEAST: "SOUTHEAST",
+      SOUTH: "SOUTH",
+      SOUTHWEST: "SOUTHWEST",
+      WEST: "WEST",
+      NORTHWEST: "NORTHWEST",
+      // Vertical
+      UP: "UP",
+      DOWN: "DOWN",
+      // Special
+      IN: "IN",
+      OUT: "OUT"
+    }, U = /* @__PURE__ */ new Map([
+      ["NORTH", "SOUTH"],
+      ["SOUTH", "NORTH"],
+      ["EAST", "WEST"],
+      ["WEST", "EAST"],
+      ["NORTHEAST", "SOUTHWEST"],
+      ["SOUTHWEST", "NORTHEAST"],
+      ["NORTHWEST", "SOUTHEAST"],
+      ["SOUTHEAST", "NORTHWEST"],
+      ["UP", "DOWN"],
+      ["DOWN", "UP"],
+      ["IN", "OUT"],
+      ["OUT", "IN"]
+    ]), ge = /* @__PURE__ */ new Map([
+      ["north", "NORTH"],
+      ["n", "NORTH"],
+      ["northeast", "NORTHEAST"],
+      ["ne", "NORTHEAST"],
+      ["east", "EAST"],
+      ["e", "EAST"],
+      ["southeast", "SOUTHEAST"],
+      ["se", "SOUTHEAST"],
+      ["south", "SOUTH"],
+      ["s", "SOUTH"],
+      ["southwest", "SOUTHWEST"],
+      ["sw", "SOUTHWEST"],
+      ["west", "WEST"],
+      ["w", "WEST"],
+      ["northwest", "NORTHWEST"],
+      ["nw", "NORTHWEST"],
+      ["up", "UP"],
+      ["u", "UP"],
+      ["down", "DOWN"],
+      ["d", "DOWN"],
+      ["in", "IN"],
+      ["out", "OUT"]
+    ]);
+    function he(h) {
+      return U.get(h) ?? null;
+    }
+    function Te(h) {
+      return ge.get(h.toLowerCase()) ?? null;
+    }
+    R.opposite = he;
+    R.parse = Te;
+    function we(h, c) {
+      const a = h;
+      U.set(a, c), c && U.set(c, a);
+    }
+    function Se(h) {
+      const c = /* @__PURE__ */ new Map(), a = /* @__PURE__ */ new Map(), N = /* @__PURE__ */ new Map(), x = /* @__PURE__ */ new Map(), k = h == null ? void 0 : h.flagStore, L = h == null ? void 0 : h.canTraverse, v = (n, r, t) => `${String(t)}:${String(n)}:${String(r)}`, S = (n, ...r) => {
+        const t = x.get(n);
+        t && t.forEach((e) => {
+          e(...r);
+        });
+      }, D = (n, r, t) => {
+        var e, i;
+        if (!r)
+          return { allowed: !0 };
+        if (r.hidden && !((e = t.discovered) != null && e.includes(r.id)))
+          return { allowed: !1, reason: "hidden", gateId: r.id };
+        if (r.locked)
+          return r.keyId && ((i = t.inventory) != null && i.includes(r.keyId)) ? { allowed: !0 } : { allowed: !1, reason: "locked", gateId: r.id };
+        if (r.condition) {
+          const o = t.flagStore ?? k;
+          if (!o)
+            return { allowed: !1, reason: r.blockedMessage ?? "blocked", gateId: r.id };
+          if (!o.check(r.condition))
+            return { allowed: !1, reason: r.blockedMessage ?? "blocked", gateId: r.id };
+        }
+        return { allowed: !0 };
+      }, W = (n, r) => {
+        var s;
+        if (!n || n.length === 0)
+          throw new T("Node id cannot be empty");
+        if (c.has(n))
+          throw new T(`Node with id "${n}" already exists`);
+        const t = (r == null ? void 0 : r.layer) ?? 1, e = { ...r };
+        delete e.tiles, delete e.layer;
+        const i = (s = r == null ? void 0 : r.tiles) == null ? void 0 : s.map((l) => ({
+          x: l.x,
+          y: l.y,
+          layer: l.layer ?? t
+        })), o = {
+          id: n,
+          metadata: e,
+          layer: t,
+          ...i ? { tiles: i } : {}
+        };
+        c.set(n, o), i && i.forEach((l) => {
+          const f = v(l.x, l.y, l.layer);
+          N.set(f, n);
+        }), S("nodeCreated", n, o);
+      }, z = (n) => c.get(n) ?? null, P = (n) => c.has(n), j = (n) => {
+        const r = c.get(n);
+        if (!r)
+          throw new T(`Node "${n}" does not exist`);
+        return r.tiles && r.tiles.forEach((t) => {
+          const e = v(t.x, t.y, t.layer ?? r.layer);
+          N.delete(e);
+        }), a.delete(n), a.forEach((t) => {
+          const e = [];
+          t.forEach((i, o) => {
+            i.target === n && e.push(o);
+          }), e.forEach((i) => t.delete(i));
+        }), c.delete(n), S("nodeRemoved", n), r;
+      }, C = () => Array.from(c.keys()), G = (n, r, t, e) => {
+        var l, f, d;
+        if (!c.has(n))
+          throw new T(`Source node "${n}" does not exist`);
+        if (!c.has(t))
+          throw new T(`Target node "${t}" does not exist`);
+        const i = (e == null ? void 0 : e.bidirectional) ?? !0, o = (e == null ? void 0 : e.cost) ?? 1, s = {
+          target: t,
+          direction: r,
+          ...e != null && e.gate ? { gate: e.gate } : {},
+          cost: o,
+          ...e != null && e.fromTile ? { fromTile: e.fromTile } : {},
+          ...e != null && e.toTile ? { toTile: e.toTile } : {},
+          bidirectional: i
+        };
+        if (a.has(n) || a.set(n, /* @__PURE__ */ new Map()), (l = a.get(n)) == null || l.set(r, s), S("connectionCreated", n, r, t), i) {
+          const w = $(r);
+          if (w && !((f = a.get(t)) == null ? void 0 : f.get(w))) {
+            const g = {
+              target: n,
+              direction: w,
+              ...e != null && e.gate ? { gate: e.gate } : {},
+              cost: o,
+              ...e != null && e.toTile ? { fromTile: e.toTile } : {},
+              ...e != null && e.fromTile ? { toTile: e.fromTile } : {},
+              bidirectional: !1
+              // Don't create infinite loop
+            };
+            a.has(t) || a.set(t, /* @__PURE__ */ new Map()), (d = a.get(t)) == null || d.set(w, g), S("connectionCreated", t, w, n);
+          }
+        }
+      }, q = (n, r, t) => {
+        if (!c.has(n))
+          throw new T(`Node "${n}" does not exist`);
+        const e = a.get(n), i = e == null ? void 0 : e.get(r);
+        if (i && (e == null || e.delete(r), S("connectionRemoved", n, r), ((t == null ? void 0 : t.bidirectional) ?? i.bidirectional) && i.target)) {
+          const s = $(r);
+          if (s) {
+            const l = a.get(i.target);
+            l != null && l.has(s) && (l.delete(s), S("connectionRemoved", i.target, s));
+          }
+        }
+      }, b = (n, r) => {
+        const t = a.get(n), e = t == null ? void 0 : t.get(r);
+        if (!e)
+          return null;
+        const i = {
+          target: e.target,
+          direction: r,
+          gate: e.gate ?? null,
+          cost: e.cost
+        };
+        return e.fromTile !== void 0 && (i.fromTile = e.fromTile), e.toTile !== void 0 && (i.toTile = e.toTile), i;
+      }, E = (n) => {
+        if (!c.has(n))
+          throw new T(`Node "${n}" does not exist`);
+        const r = a.get(n);
+        if (!r)
+          return [];
+        const t = [];
+        return r.forEach((e, i) => {
+          t.push({
+            direction: i,
+            target: e.target,
+            gate: e.gate ?? null,
+            cost: e.cost
+          });
+        }), t;
+      }, Z = (n, r) => {
+        var e;
+        if (!c.has(n))
+          throw new T(`Node "${n}" does not exist`);
+        const t = (e = a.get(n)) == null ? void 0 : e.get(r);
+        return (t == null ? void 0 : t.target) ?? null;
+      }, _ = (n, r, t) => {
+        const e = a.get(n), i = e == null ? void 0 : e.get(r);
+        if (!i)
+          throw new T(`Connection from "${n}" in direction "${r}" does not exist`);
+        i.gate = t, S("gateUpdated", n, r, t);
+      }, F = (n, r, t) => {
+        const e = a.get(n), i = e == null ? void 0 : e.get(r);
+        if (!(i != null && i.gate))
+          throw new T(`Gate on connection from "${n}" in direction "${r}" does not exist`);
+        Object.assign(i.gate, t), S("gateUpdated", n, r, i.gate);
+      }, V = (n, r) => {
+        const t = a.get(n), e = t == null ? void 0 : t.get(r);
+        e != null && e.gate && (delete e.gate, S("gateUpdated", n, r, null));
+      }, X = (n, r) => {
+        var e;
+        const t = (e = a.get(n)) == null ? void 0 : e.get(r);
+        return (t == null ? void 0 : t.gate) ?? null;
+      }, H = (n, r, t) => {
+        const e = b(n, r);
+        if (!e)
+          return { allowed: !1, reason: "no connection" };
+        const i = t ?? {};
+        return (L ?? D)(e, e.gate ?? null, i);
+      }, Y = (n, r, t) => {
+        if (n === r)
+          return [n];
+        const e = (t == null ? void 0 : t.maxLength) ?? 1 / 0, i = (t == null ? void 0 : t.context) ?? {}, o = /* @__PURE__ */ new Map([[n, 0]]), s = /* @__PURE__ */ new Map(), l = /* @__PURE__ */ new Set(), f = [{ node: n, cost: 0 }];
+        for (; f.length > 0; ) {
+          f.sort((u, g) => u.cost - g.cost);
+          const d = f.shift();
+          if (!d || l.has(d.node))
+            continue;
+          if (l.add(d.node), d.node === r) {
+            const u = [];
+            let g = r;
+            for (; g; )
+              u.unshift(g), g = s.get(g);
+            return u;
+          }
+          const w = E(d.node);
+          for (const u of w) {
+            const g = H(d.node, u.direction, i);
+            if (!g.allowed && !(t != null && t.avoidLocked) || !g.allowed && (t != null && t.avoidLocked))
+              continue;
+            const O = d.cost + (u.cost ?? 1), y = o.get(u.target);
+            m(s, d.node) + 2 > e || (y === void 0 || O < y) && (o.set(u.target, O), s.set(u.target, d.node), l.has(u.target) || f.push({
+              node: u.target,
+              cost: O
+            }));
+          }
+        }
+        return null;
+      }, m = (n, r) => {
+        let t = 0, e = r;
+        for (; e && n.has(e); )
+          t++, e = n.get(e);
+        return t;
+      }, A = (n, r, t) => {
+        if (n === r)
+          return 0;
+        const e = (t == null ? void 0 : t.maxLength) ?? 1 / 0, i = (t == null ? void 0 : t.context) ?? {}, o = /* @__PURE__ */ new Map([[n, 0]]), s = /* @__PURE__ */ new Set(), l = [{ node: n, cost: 0 }], f = /* @__PURE__ */ new Map();
+        for (; l.length > 0; ) {
+          l.sort((u, g) => u.cost - g.cost);
+          const d = l.shift();
+          if (!d || s.has(d.node))
+            continue;
+          if (s.add(d.node), d.node === r)
+            return d.cost;
+          const w = E(d.node);
+          for (const u of w) {
+            const g = H(d.node, u.direction, i);
+            if (!g.allowed && !(t != null && t.avoidLocked) || !g.allowed && (t != null && t.avoidLocked))
+              continue;
+            const O = d.cost + (u.cost ?? 1), y = o.get(u.target);
+            m(f, d.node) + 2 > e || (y === void 0 || O < y) && (o.set(u.target, O), f.set(u.target, d.node), s.has(u.target) || l.push({
+              node: u.target,
+              cost: O
+            }));
+          }
+        }
+        return 1 / 0;
+      }, B = (n, r, t) => A(n, r, t) !== 1 / 0, K = (n, r) => {
+        const t = /* @__PURE__ */ new Set([n]), e = [{ node: n, distance: 0 }], i = (r == null ? void 0 : r.maxDistance) ?? 1 / 0, o = (r == null ? void 0 : r.context) ?? {};
+        for (; e.length > 0; ) {
+          const s = e.shift();
+          if (!s || s.distance >= i)
+            continue;
+          const l = E(s.node);
+          for (const f of l)
+            H(s.node, f.direction, o).allowed && (t.has(f.target) || (t.add(f.target), e.push({
+              node: f.target,
+              distance: s.distance + 1
+            })));
+        }
+        return Array.from(t);
+      }, J = (n, r, t) => {
+        const e = v(n, r, t ?? 1);
+        return N.get(e) ?? null;
+      }, I = (n) => {
+        const r = c.get(n);
+        return (r == null ? void 0 : r.tiles) ?? [];
+      }, Q = (n) => {
+        const r = I(n);
+        if (r.length === 0)
+          return null;
+        let t = 1 / 0, e = -1 / 0, i = 1 / 0, o = -1 / 0;
+        return r.forEach((s) => {
+          t = Math.min(t, s.x), e = Math.max(e, s.x), i = Math.min(i, s.y), o = Math.max(o, s.y);
+        }), { minX: t, maxX: e, minY: i, maxY: o };
+      }, p = (n) => {
+        const r = [];
+        return c.forEach((t, e) => {
+          t.layer === n && r.push(e);
+        }), r;
+      }, M = (n, r) => {
+        const t = c.get(n);
+        if (!t)
+          throw new T(`Node "${n}" does not exist`);
+        t.zone = r;
+      }, ee = (n) => {
+        const r = c.get(n);
+        return (r == null ? void 0 : r.zone) ?? null;
+      }, te = (n) => {
+        const r = [];
+        return c.forEach((t, e) => {
+          t.zone === n && r.push(e);
+        }), r;
+      }, ne = (n) => {
+        const r = c.get(n);
+        r && delete r.zone;
+      }, re = (n, r) => {
+        we(n, r.opposite ?? null);
+      }, ie = () => {
+        const n = [];
+        return c.forEach((r, t) => {
+          if (E(t).length > 0)
+            return;
+          let i = !1;
+          a.forEach((o) => {
+            o.forEach((s) => {
+              s.target === t && (i = !0);
+            });
+          }), i || n.push(t);
+        }), n;
+      }, oe = () => {
+        const n = [];
+        return c.forEach((r, t) => {
+          E(t).length === 1 && n.push(t);
+        }), n;
+      }, se = () => {
+        const n = /* @__PURE__ */ new Set(), r = [];
+        return c.forEach((t, e) => {
+          if (n.has(e))
+            return;
+          const i = [], o = [e];
+          for (; o.length > 0; ) {
+            const s = o.shift();
+            if (!s || n.has(s))
+              continue;
+            n.add(s), i.push(s), E(s).forEach((f) => {
+              n.has(f.target) || o.push(f.target);
+            }), a.forEach((f, d) => {
+              f.forEach((w) => {
+                w.target === s && !n.has(d) && o.push(d);
+              });
+            });
+          }
+          r.push(i);
+        }), r;
+      }, ce = () => {
+        const n = [];
+        return a.forEach((r, t) => {
+          c.has(t) || n.push(`Connection from non-existent node "${t}"`), r.forEach((e, i) => {
+            c.has(e.target) || n.push(`Connection from "${t}" direction "${i}" to non-existent node "${e.target}"`);
+          });
+        }), n.length === 0 ? { valid: !0 } : { valid: !1, errors: n };
+      }, ae = (n, r) => {
+        x.has(n) || x.set(n, /* @__PURE__ */ new Set());
+        const t = x.get(n);
+        return t && t.add(r), () => {
+          var e;
+          (e = x.get(n)) == null || e.delete(r);
+        };
+      }, le = () => {
+        const n = {};
+        c.forEach((t, e) => {
+          n[e] = { ...t };
+        });
+        const r = {};
+        return a.forEach((t, e) => {
+          r[e] = {}, t.forEach((i, o) => {
+            const s = {
+              target: i.target,
+              direction: o,
+              gate: i.gate ?? null,
+              cost: i.cost
+            };
+            i.fromTile !== void 0 && (s.fromTile = i.fromTile), i.toTile !== void 0 && (s.toTile = i.toTile), r[e] && (r[e][o] = s);
+          });
+        }), {
+          nodes: n,
+          connections: r
+        };
+      }, de = (n) => {
+        c.clear(), a.clear(), N.clear();
+        const r = n;
+        if (!r.nodes || typeof r.nodes != "object")
+          throw new T("Invalid serialized data: missing nodes");
+        Object.entries(n.nodes).forEach(([t, e]) => {
+          const i = { ...e.metadata, layer: e.layer };
+          e.tiles && (i.tiles = e.tiles), W(t, i), e.zone && M(t, e.zone);
+        }), Object.entries(n.connections).forEach(([t, e]) => {
+          Object.entries(e).forEach(([i, o]) => {
+            var l;
+            const s = {
+              target: o.target,
+              direction: i,
+              ...o.gate ? { gate: o.gate } : {},
+              cost: o.cost ?? 1,
+              ...o.fromTile ? { fromTile: o.fromTile } : {},
+              ...o.toTile ? { toTile: o.toTile } : {},
+              bidirectional: !1
+            };
+            a.has(t) || a.set(t, /* @__PURE__ */ new Map()), (l = a.get(t)) == null || l.set(i, s);
+          });
+        });
+      }, $ = (n) => R.opposite(n);
+      return {
+        createNode: W,
+        getNode: z,
+        hasNode: P,
+        removeNode: j,
+        getAllNodes: C,
+        connect: G,
+        disconnect: q,
+        getConnection: b,
+        getExits: E,
+        getDestination: Z,
+        setGate: _,
+        updateGate: F,
+        removeGate: V,
+        getGate: X,
+        canTraverse: H,
+        findPath: Y,
+        getDistance: A,
+        canReach: B,
+        getReachable: K,
+        getNodeAt: J,
+        getTiles: I,
+        getBounds: Q,
+        getNodesInLayer: p,
+        setZone: M,
+        getZone: ee,
+        getNodesInZone: te,
+        removeZone: ne,
+        registerDirection: re,
+        getOrphans: ie,
+        getDeadEnds: oe,
+        getSubgraphs: se,
+        validate: ce,
+        on: ae,
+        serialize: le,
+        deserialize: de
+      };
+    }
+
+    // Expose to window for demo
+    window.createSpatialGraph = Se;
+    window.Direction = R;
+    window.SpatialError = fe;
+    window.ValidationError = T;
+  </script>
+
+  <script>
+    // ============================================
+    // DEMO AND TEST CODE
+    // ============================================
+
+    // Global graph for interactive demos
+    let demoGraph = createSpatialGraph();
+
+    // Test suite
+    const tests = [
+      // Direction tests
+      {
+        name: 'Direction: exports all direction constants',
+        fn: async () => {
+          const dirs = ['NORTH', 'SOUTH', 'EAST', 'WEST', 'NORTHEAST', 'NORTHWEST', 'SOUTHEAST', 'SOUTHWEST', 'UP', 'DOWN', 'IN', 'OUT'];
+          dirs.forEach(dir => {
+            if (!Direction[dir]) throw new Error(`Missing direction ${dir}`);
+          });
+        }
+      },
+      {
+        name: 'Direction.opposite: returns correct opposites',
+        fn: async () => {
+          if (Direction.opposite('NORTH') !== 'SOUTH') throw new Error('NORTH opposite should be SOUTH');
+          if (Direction.opposite('EAST') !== 'WEST') throw new Error('EAST opposite should be WEST');
+          if (Direction.opposite('UP') !== 'DOWN') throw new Error('UP opposite should be DOWN');
+          if (Direction.opposite('IN') !== 'OUT') throw new Error('IN opposite should be OUT');
+        }
+      },
+      {
+        name: 'Direction.parse: parses direction strings',
+        fn: async () => {
+          if (Direction.parse('north') !== 'NORTH') throw new Error('Failed to parse "north"');
+          if (Direction.parse('n') !== 'NORTH') throw new Error('Failed to parse "n"');
+          if (Direction.parse('N') !== 'NORTH') throw new Error('Failed to parse "N" (case insensitive)');
+          if (Direction.parse('ne') !== 'NORTHEAST') throw new Error('Failed to parse "ne"');
+        }
+      },
+      {
+        name: 'Direction.parse: returns null for invalid input',
+        fn: async () => {
+          if (Direction.parse('invalid') !== null) throw new Error('Should return null for invalid direction');
+          if (Direction.parse('') !== null) throw new Error('Should return null for empty string');
+        }
+      },
+
+      // Basic graph creation
+      {
+        name: 'createSpatialGraph: creates empty graph',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          if (!graph) throw new Error('Failed to create graph');
+          if (!graph.createNode) throw new Error('Missing createNode method');
+        }
+      },
+      {
+        name: 'createSpatialGraph: has all expected methods',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          const methods = ['createNode', 'getNode', 'connect', 'disconnect', 'findPath', 'serialize', 'deserialize'];
+          methods.forEach(method => {
+            if (typeof graph[method] !== 'function') throw new Error(`Missing method: ${method}`);
+          });
+        }
+      },
+
+      // Node management
+      {
+        name: 'createNode: creates node with id',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('test1');
+          if (!graph.hasNode('test1')) throw new Error('Node was not created');
+        }
+      },
+      {
+        name: 'createNode: creates node with metadata',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('test2', { name: 'Test Room', description: 'A test room' });
+          const node = graph.getNode('test2');
+          if (node.metadata.name !== 'Test Room') throw new Error('Metadata not stored correctly');
+        }
+      },
+      {
+        name: 'createNode: throws on duplicate id',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('dup');
+          try {
+            graph.createNode('dup');
+            throw new Error('Should have thrown ValidationError');
+          } catch (e) {
+            if (e.name !== 'ValidationError') throw new Error('Wrong error type');
+          }
+        }
+      },
+      {
+        name: 'createNode: throws on empty id',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          try {
+            graph.createNode('');
+            throw new Error('Should have thrown ValidationError');
+          } catch (e) {
+            if (e.name !== 'ValidationError') throw new Error('Wrong error type');
+          }
+        }
+      },
+      {
+        name: 'getNode: returns node data',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('gn1', { name: 'Room' });
+          const node = graph.getNode('gn1');
+          if (!node || node.id !== 'gn1') throw new Error('Failed to get node');
+        }
+      },
+      {
+        name: 'getNode: returns null for non-existent node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          if (graph.getNode('nonexistent') !== null) throw new Error('Should return null');
+        }
+      },
+      {
+        name: 'hasNode: returns true for existing node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('exists');
+          if (!graph.hasNode('exists')) throw new Error('hasNode returned false');
+        }
+      },
+      {
+        name: 'hasNode: returns false for non-existent node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          if (graph.hasNode('doesnotexist')) throw new Error('hasNode returned true');
+        }
+      },
+      {
+        name: 'removeNode: removes existing node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('remove1');
+          graph.removeNode('remove1');
+          if (graph.hasNode('remove1')) throw new Error('Node was not removed');
+        }
+      },
+      {
+        name: 'removeNode: throws for non-existent node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          try {
+            graph.removeNode('nonexistent');
+            throw new Error('Should have thrown ValidationError');
+          } catch (e) {
+            if (e.name !== 'ValidationError') throw new Error('Wrong error type');
+          }
+        }
+      },
+      {
+        name: 'getAllNodes: returns all node ids',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('n1');
+          graph.createNode('n2');
+          graph.createNode('n3');
+          const nodes = graph.getAllNodes();
+          if (nodes.length !== 3) throw new Error('Wrong number of nodes');
+          if (!nodes.includes('n1')) throw new Error('Missing n1');
+        }
+      },
+
+      // Connection management
+      {
+        name: 'connect: creates bidirectional connection',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('c1');
+          graph.createNode('c2');
+          graph.connect('c1', 'NORTH', 'c2');
+          if (graph.getDestination('c1', 'NORTH') !== 'c2') throw new Error('Forward connection missing');
+          if (graph.getDestination('c2', 'SOUTH') !== 'c1') throw new Error('Reverse connection missing');
+        }
+      },
+      {
+        name: 'connect: creates one-way connection',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('o1');
+          graph.createNode('o2');
+          graph.connect('o1', 'EAST', 'o2', { bidirectional: false });
+          if (graph.getDestination('o1', 'EAST') !== 'o2') throw new Error('Forward connection missing');
+          if (graph.getDestination('o2', 'WEST') !== null) throw new Error('Should not have reverse connection');
+        }
+      },
+      {
+        name: 'connect: throws for non-existent source',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('target');
+          try {
+            graph.connect('nonexistent', 'NORTH', 'target');
+            throw new Error('Should have thrown');
+          } catch (e) {
+            if (e.name !== 'ValidationError') throw new Error('Wrong error type');
+          }
+        }
+      },
+      {
+        name: 'connect: throws for non-existent target',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('source');
+          try {
+            graph.connect('source', 'NORTH', 'nonexistent');
+            throw new Error('Should have thrown');
+          } catch (e) {
+            if (e.name !== 'ValidationError') throw new Error('Wrong error type');
+          }
+        }
+      },
+      {
+        name: 'disconnect: removes connection',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('d1');
+          graph.createNode('d2');
+          graph.connect('d1', 'NORTH', 'd2');
+          graph.disconnect('d1', 'NORTH');
+          if (graph.getDestination('d1', 'NORTH') !== null) throw new Error('Connection not removed');
+        }
+      },
+      {
+        name: 'getExits: returns all exits from node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('e1');
+          graph.createNode('e2');
+          graph.createNode('e3');
+          graph.connect('e1', 'NORTH', 'e2');
+          graph.connect('e1', 'EAST', 'e3');
+          const exits = graph.getExits('e1');
+          if (exits.length !== 2) throw new Error('Wrong number of exits');
+        }
+      },
+
+      // Gate system
+      {
+        name: 'setGate: adds gate to connection',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('g1');
+          graph.createNode('g2');
+          graph.connect('g1', 'NORTH', 'g2');
+          graph.setGate('g1', 'NORTH', { id: 'gate1', locked: true });
+          const gate = graph.getGate('g1', 'NORTH');
+          if (!gate || gate.id !== 'gate1') throw new Error('Gate not set');
+        }
+      },
+      {
+        name: 'setGate: throws if connection does not exist',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('g3');
+          graph.createNode('g4');
+          try {
+            graph.setGate('g3', 'NORTH', { id: 'gate2' });
+            throw new Error('Should have thrown');
+          } catch (e) {
+            if (e.name !== 'ValidationError') throw new Error('Wrong error type');
+          }
+        }
+      },
+      {
+        name: 'updateGate: updates gate properties',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('u1');
+          graph.createNode('u2');
+          graph.connect('u1', 'NORTH', 'u2');
+          graph.setGate('u1', 'NORTH', { id: 'gate3', locked: true });
+          graph.updateGate('u1', 'NORTH', { locked: false });
+          const gate = graph.getGate('u1', 'NORTH');
+          if (gate.locked !== false) throw new Error('Gate not updated');
+        }
+      },
+      {
+        name: 'removeGate: removes gate from connection',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('r1');
+          graph.createNode('r2');
+          graph.connect('r1', 'NORTH', 'r2');
+          graph.setGate('r1', 'NORTH', { id: 'gate4' });
+          graph.removeGate('r1', 'NORTH');
+          if (graph.getGate('r1', 'NORTH') !== null) throw new Error('Gate not removed');
+        }
+      },
+
+      // Traversal
+      {
+        name: 'canTraverse: allows open connection',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('t1');
+          graph.createNode('t2');
+          graph.connect('t1', 'NORTH', 't2');
+          const result = graph.canTraverse('t1', 'NORTH');
+          if (!result.allowed) throw new Error('Should allow traversal');
+        }
+      },
+      {
+        name: 'canTraverse: blocks locked gate',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('t3');
+          graph.createNode('t4');
+          graph.connect('t3', 'NORTH', 't4');
+          graph.setGate('t3', 'NORTH', { id: 'g5', locked: true });
+          const result = graph.canTraverse('t3', 'NORTH');
+          if (result.allowed) throw new Error('Should block traversal');
+          if (result.reason !== 'locked') throw new Error('Wrong reason');
+        }
+      },
+      {
+        name: 'canTraverse: allows with key in context',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('t5');
+          graph.createNode('t6');
+          graph.connect('t5', 'NORTH', 't6');
+          graph.setGate('t5', 'NORTH', { id: 'g6', locked: true, keyId: 'key1' });
+          const result = graph.canTraverse('t5', 'NORTH', { inventory: ['key1'] });
+          if (!result.allowed) throw new Error('Should allow with key');
+        }
+      },
+
+      // Pathfinding
+      {
+        name: 'findPath: returns direct path for adjacent nodes',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('p1');
+          graph.createNode('p2');
+          graph.connect('p1', 'NORTH', 'p2');
+          const path = graph.findPath('p1', 'p2');
+          if (!path || path.length !== 2) throw new Error('Wrong path');
+          if (path[0] !== 'p1' || path[1] !== 'p2') throw new Error('Wrong path content');
+        }
+      },
+      {
+        name: 'findPath: returns multi-step path',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('p3');
+          graph.createNode('p4');
+          graph.createNode('p5');
+          graph.connect('p3', 'NORTH', 'p4');
+          graph.connect('p4', 'NORTH', 'p5');
+          const path = graph.findPath('p3', 'p5');
+          if (!path || path.length !== 3) throw new Error('Wrong path length');
+        }
+      },
+      {
+        name: 'findPath: returns null when no path exists',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('p6');
+          graph.createNode('p7');
+          const path = graph.findPath('p6', 'p7');
+          if (path !== null) throw new Error('Should return null');
+        }
+      },
+      {
+        name: 'findPath: returns null when blocked by locked gate',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('p8');
+          graph.createNode('p9');
+          graph.connect('p8', 'NORTH', 'p9');
+          graph.setGate('p8', 'NORTH', { id: 'g7', locked: true });
+          const path = graph.findPath('p8', 'p9', { avoidLocked: true });
+          if (path !== null) throw new Error('Should return null for locked path');
+        }
+      },
+      {
+        name: 'getDistance: returns 0 for same node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('d1');
+          if (graph.getDistance('d1', 'd1') !== 0) throw new Error('Same node distance should be 0');
+        }
+      },
+      {
+        name: 'getDistance: returns 1 for adjacent nodes',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('d2');
+          graph.createNode('d3');
+          graph.connect('d2', 'NORTH', 'd3');
+          if (graph.getDistance('d2', 'd3') !== 1) throw new Error('Adjacent distance should be 1');
+        }
+      },
+      {
+        name: 'getDistance: returns Infinity when no path',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('d4');
+          graph.createNode('d5');
+          if (graph.getDistance('d4', 'd5') !== Infinity) throw new Error('No path should return Infinity');
+        }
+      },
+      {
+        name: 'canReach: returns true for reachable node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('r1');
+          graph.createNode('r2');
+          graph.connect('r1', 'NORTH', 'r2');
+          if (!graph.canReach('r1', 'r2')) throw new Error('Should be reachable');
+        }
+      },
+      {
+        name: 'canReach: returns false for unreachable node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('r3');
+          graph.createNode('r4');
+          if (graph.canReach('r3', 'r4')) throw new Error('Should not be reachable');
+        }
+      },
+      {
+        name: 'getReachable: returns all reachable nodes',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('rr1');
+          graph.createNode('rr2');
+          graph.createNode('rr3');
+          graph.createNode('rr4');
+          graph.connect('rr1', 'NORTH', 'rr2');
+          graph.connect('rr2', 'NORTH', 'rr3');
+          const reachable = graph.getReachable('rr1');
+          if (reachable.length !== 3) throw new Error('Wrong number of reachable nodes');
+        }
+      },
+
+      // Multi-tile nodes
+      {
+        name: 'createNode: creates node with tiles',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('mt1', { tiles: [{ x: 0, y: 0 }, { x: 1, y: 0 }] });
+          const tiles = graph.getTiles('mt1');
+          if (tiles.length !== 2) throw new Error('Wrong number of tiles');
+        }
+      },
+      {
+        name: 'getNodeAt: returns node at tile position',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('mt2', { tiles: [{ x: 5, y: 5 }] });
+          const nodeId = graph.getNodeAt(5, 5);
+          if (nodeId !== 'mt2') throw new Error('Wrong node at position');
+        }
+      },
+      {
+        name: 'getNodeAt: returns null for empty tile',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          if (graph.getNodeAt(99, 99) !== null) throw new Error('Should return null');
+        }
+      },
+      {
+        name: 'getBounds: returns bounding box',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('mb1', { tiles: [{ x: 0, y: 0 }, { x: 2, y: 3 }] });
+          const bounds = graph.getBounds('mb1');
+          if (!bounds) throw new Error('No bounds returned');
+          if (bounds.minX !== 0 || bounds.maxX !== 2) throw new Error('Wrong X bounds');
+          if (bounds.minY !== 0 || bounds.maxY !== 3) throw new Error('Wrong Y bounds');
+        }
+      },
+
+      // Layers
+      {
+        name: 'createNode: creates nodes on different layers',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('l1', { layer: 1 });
+          graph.createNode('l2', { layer: 2 });
+          const layer1 = graph.getNodesInLayer(1);
+          const layer2 = graph.getNodesInLayer(2);
+          if (!layer1.includes('l1')) throw new Error('l1 not in layer 1');
+          if (!layer2.includes('l2')) throw new Error('l2 not in layer 2');
+        }
+      },
+      {
+        name: 'getNodeAt: uses layer parameter',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('l3', { tiles: [{ x: 0, y: 0 }], layer: 1 });
+          graph.createNode('l4', { tiles: [{ x: 0, y: 0 }], layer: 2 });
+          if (graph.getNodeAt(0, 0, 1) !== 'l3') throw new Error('Wrong node on layer 1');
+          if (graph.getNodeAt(0, 0, 2) !== 'l4') throw new Error('Wrong node on layer 2');
+        }
+      },
+
+      // Zones
+      {
+        name: 'setZone: assigns zone to node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('z1');
+          graph.setZone('z1', 'forest');
+          if (graph.getZone('z1') !== 'forest') throw new Error('Zone not set');
+        }
+      },
+      {
+        name: 'getNodesInZone: returns all nodes in zone',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('z2');
+          graph.createNode('z3');
+          graph.setZone('z2', 'dungeon');
+          graph.setZone('z3', 'dungeon');
+          const nodes = graph.getNodesInZone('dungeon');
+          if (nodes.length !== 2) throw new Error('Wrong number of nodes in zone');
+        }
+      },
+      {
+        name: 'removeZone: removes zone from node',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('z4');
+          graph.setZone('z4', 'castle');
+          graph.removeZone('z4');
+          if (graph.getZone('z4') !== null) throw new Error('Zone not removed');
+        }
+      },
+
+      // Graph analysis
+      {
+        name: 'getOrphans: returns nodes with no connections',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('o1');
+          graph.createNode('o2');
+          graph.createNode('o3');
+          graph.connect('o2', 'NORTH', 'o3');
+          const orphans = graph.getOrphans();
+          if (!orphans.includes('o1')) throw new Error('o1 should be orphan');
+          if (orphans.includes('o2')) throw new Error('o2 should not be orphan');
+        }
+      },
+      {
+        name: 'getDeadEnds: returns nodes with one connection',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('de1');
+          graph.createNode('de2');
+          graph.createNode('de3');
+          graph.connect('de1', 'NORTH', 'de2');
+          graph.connect('de2', 'EAST', 'de3');
+          const deadEnds = graph.getDeadEnds();
+          if (!deadEnds.includes('de1')) throw new Error('de1 should be dead end');
+          if (!deadEnds.includes('de3')) throw new Error('de3 should be dead end');
+        }
+      },
+      {
+        name: 'getSubgraphs: returns connected components',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('sg1');
+          graph.createNode('sg2');
+          graph.createNode('sg3');
+          graph.createNode('sg4');
+          graph.connect('sg1', 'NORTH', 'sg2');
+          graph.connect('sg3', 'NORTH', 'sg4');
+          const subgraphs = graph.getSubgraphs();
+          if (subgraphs.length !== 2) throw new Error('Should have 2 subgraphs');
+        }
+      },
+      {
+        name: 'validate: returns valid for valid graph',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('v1');
+          graph.createNode('v2');
+          graph.connect('v1', 'NORTH', 'v2');
+          const result = graph.validate();
+          if (!result.valid) throw new Error('Graph should be valid');
+        }
+      },
+
+      // Serialization
+      {
+        name: 'serialize: returns JSON-compatible object',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('s1', { name: 'Test' });
+          const data = graph.serialize();
+          if (!data.nodes) throw new Error('Missing nodes');
+          if (!data.connections) throw new Error('Missing connections');
+        }
+      },
+      {
+        name: 'deserialize: restores graph from data',
+        fn: async () => {
+          const graph1 = createSpatialGraph();
+          graph1.createNode('ds1', { name: 'Room' });
+          graph1.createNode('ds2');
+          graph1.connect('ds1', 'NORTH', 'ds2');
+          const data = graph1.serialize();
+
+          const graph2 = createSpatialGraph();
+          graph2.deserialize(data);
+          if (!graph2.hasNode('ds1')) throw new Error('Node not restored');
+          if (graph2.getDestination('ds1', 'NORTH') !== 'ds2') throw new Error('Connection not restored');
+        }
+      },
+      {
+        name: 'serialize/deserialize: round-trip preserves data',
+        fn: async () => {
+          const graph1 = createSpatialGraph();
+          graph1.createNode('rt1', { name: 'Start', description: 'The starting room' });
+          graph1.createNode('rt2', { name: 'End' });
+          graph1.connect('rt1', 'NORTH', 'rt2');
+          graph1.setGate('rt1', 'NORTH', { id: 'door1', locked: true });
+
+          const data = graph1.serialize();
+          const graph2 = createSpatialGraph();
+          graph2.deserialize(data);
+
+          const node = graph2.getNode('rt1');
+          if (node.metadata.name !== 'Start') throw new Error('Metadata not preserved');
+
+          const gate = graph2.getGate('rt1', 'NORTH');
+          if (!gate || gate.id !== 'door1') throw new Error('Gate not preserved');
+        }
+      },
+
+      // Events
+      {
+        name: 'on: fires nodeCreated event',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          let fired = false;
+          graph.on('nodeCreated', (id) => {
+            if (id === 'ev1') fired = true;
+          });
+          graph.createNode('ev1');
+          if (!fired) throw new Error('Event not fired');
+        }
+      },
+      {
+        name: 'on: unsubscribe stops events',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          let count = 0;
+          const unsub = graph.on('nodeCreated', () => count++);
+          graph.createNode('ev2');
+          unsub();
+          graph.createNode('ev3');
+          if (count !== 1) throw new Error('Unsubscribe did not work');
+        }
+      },
+
+      // Edge cases
+      {
+        name: 'Edge case: self-connection',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('self');
+          graph.connect('self', 'NORTH', 'self');
+          if (graph.getDestination('self', 'NORTH') !== 'self') throw new Error('Self-connection failed');
+        }
+      },
+      {
+        name: 'Edge case: unicode node ids',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('房间1', { name: 'Chinese Room' });
+          if (!graph.hasNode('房间1')) throw new Error('Unicode node id failed');
+        }
+      },
+      {
+        name: 'Edge case: overwrites existing connection',
+        fn: async () => {
+          const graph = createSpatialGraph();
+          graph.createNode('ow1');
+          graph.createNode('ow2');
+          graph.createNode('ow3');
+          graph.connect('ow1', 'NORTH', 'ow2');
+          graph.connect('ow1', 'NORTH', 'ow3');
+          if (graph.getDestination('ow1', 'NORTH') !== 'ow3') throw new Error('Connection not overwritten');
+        }
+      },
+    ];
+
+    function logResult(name, status, error) {
+      const output = document.getElementById('test-output');
+      const className = status === 'PASS' ? 'test-pass' : 'test-fail';
+      const errorMsg = error ? ` - ${error}` : '';
+      output.innerHTML += `<div class="${className}">[${status}] ${name}${errorMsg}</div>`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function logSummary(passed, failed) {
+      const summary = document.getElementById('summary');
+      const total = passed + failed;
+      const className = failed === 0 ? 'test-pass' : 'test-fail';
+      summary.innerHTML = `<span class="${className}">${passed}/${total} tests passed</span>`;
+    }
+
+    async function runAllTests() {
+      clearResults();
+      let passed = 0, failed = 0;
+
+      for (const test of tests) {
+        try {
+          await test.fn();
+          logResult(test.name, 'PASS');
+          passed++;
+        } catch (e) {
+          logResult(test.name, 'FAIL', e.message);
+          failed++;
+        }
+      }
+
+      logSummary(passed, failed);
+    }
+
+    function clearResults() {
+      document.getElementById('test-output').innerHTML = '';
+      document.getElementById('summary').innerHTML = '';
+    }
+
+    // Interactive demo functions
+    function interactiveCreateNode() {
+      const id = document.getElementById('nodeId').value;
+      const name = document.getElementById('nodeName').value;
+      const output = document.getElementById('nodeOutput');
+
+      try {
+        demoGraph.createNode(id, { name });
+        output.innerHTML = `<span class="test-pass">Created node "${id}" with name "${name}"</span>`;
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+
+    function interactiveRemoveNode() {
+      const id = document.getElementById('nodeId').value;
+      const output = document.getElementById('nodeOutput');
+
+      try {
+        demoGraph.removeNode(id);
+        output.innerHTML = `<span class="test-pass">Removed node "${id}"</span>`;
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+
+    function interactiveGetNode() {
+      const id = document.getElementById('nodeId').value;
+      const output = document.getElementById('nodeOutput');
+
+      const node = demoGraph.getNode(id);
+      if (node) {
+        output.innerHTML = `<span class="test-pass">Node found:</span><br><pre>${JSON.stringify(node, null, 2)}</pre>`;
+      } else {
+        output.innerHTML = `<span class="test-fail">Node "${id}" not found</span>`;
+      }
+    }
+
+    function interactiveListNodes() {
+      const output = document.getElementById('nodeOutput');
+      const nodes = demoGraph.getAllNodes();
+
+      if (nodes.length === 0) {
+        output.innerHTML = 'No nodes in graph';
+      } else {
+        output.innerHTML = `<span class="test-pass">Nodes (${nodes.length}):</span> ${nodes.join(', ')}`;
+      }
+    }
+
+    function interactiveConnect() {
+      const from = document.getElementById('connectFrom').value;
+      const dir = document.getElementById('connectDir').value;
+      const to = document.getElementById('connectTo').value;
+      const output = document.getElementById('connectionOutput');
+
+      try {
+        demoGraph.connect(from, dir, to);
+        output.innerHTML = `<span class="test-pass">Connected "${from}" ${dir} to "${to}"</span>`;
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+
+    function interactiveGetExits() {
+      const from = document.getElementById('connectFrom').value;
+      const output = document.getElementById('connectionOutput');
+
+      try {
+        const exits = demoGraph.getExits(from);
+        if (exits.length === 0) {
+          output.innerHTML = `No exits from "${from}"`;
+        } else {
+          const exitList = exits.map(e => `${e.direction} -> ${e.target}`).join('<br>');
+          output.innerHTML = `<span class="test-pass">Exits from "${from}":</span><br>${exitList}`;
+        }
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+
+    function interactiveGetDestination() {
+      const from = document.getElementById('connectFrom').value;
+      const dir = document.getElementById('connectDir').value;
+      const output = document.getElementById('connectionOutput');
+
+      try {
+        const dest = demoGraph.getDestination(from, dir);
+        if (dest) {
+          output.innerHTML = `<span class="test-pass">"${from}" ${dir} leads to "${dest}"</span>`;
+        } else {
+          output.innerHTML = `No connection from "${from}" in direction ${dir}`;
+        }
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+
+    function interactiveSetGate() {
+      const from = document.getElementById('gateFrom').value;
+      const dir = document.getElementById('gateDir').value;
+      const locked = document.getElementById('gateLocked').checked;
+      const keyId = document.getElementById('gateKey').value;
+      const output = document.getElementById('gateOutput');
+
+      try {
+        const gate = {
+          id: `gate_${from}_${dir}`,
+          locked: locked
+        };
+        if (keyId) gate.keyId = keyId;
+
+        demoGraph.setGate(from, dir, gate);
+        output.innerHTML = `<span class="test-pass">Set gate on "${from}" ${dir}: locked=${locked}, keyId=${keyId || 'none'}</span>`;
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+
+    function interactiveCanTraverse() {
+      const from = document.getElementById('gateFrom').value;
+      const dir = document.getElementById('gateDir').value;
+      const keyId = document.getElementById('gateKey').value;
+      const output = document.getElementById('gateOutput');
+
+      try {
+        const context = keyId ? { inventory: [keyId] } : {};
+        const result = demoGraph.canTraverse(from, dir, context);
+
+        if (result.allowed) {
+          output.innerHTML = `<span class="test-pass">Traversal allowed from "${from}" ${dir}</span>`;
+        } else {
+          output.innerHTML = `<span class="test-fail">Traversal blocked: ${result.reason}</span>`;
+        }
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+
+    function interactiveFindPath() {
+      const start = document.getElementById('pathStart').value;
+      const end = document.getElementById('pathEnd').value;
+      const output = document.getElementById('pathOutput');
+
+      try {
+        const path = demoGraph.findPath(start, end);
+
+        if (path) {
+          output.innerHTML = `<span class="test-pass">Path found (${path.length} steps):</span><br>${path.join(' -> ')}`;
+        } else {
+          output.innerHTML = `<span class="test-fail">No path found from "${start}" to "${end}"</span>`;
+        }
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+
+    function interactiveGetDistance() {
+      const start = document.getElementById('pathStart').value;
+      const end = document.getElementById('pathEnd').value;
+      const output = document.getElementById('pathOutput');
+
+      try {
+        const distance = demoGraph.getDistance(start, end);
+
+        if (distance === Infinity) {
+          output.innerHTML = `<span class="test-fail">No path exists (distance = ∞)</span>`;
+        } else {
+          output.innerHTML = `<span class="test-pass">Distance from "${start}" to "${end}": ${distance}</span>`;
+        }
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+
+    function interactiveGetReachable() {
+      const start = document.getElementById('pathStart').value;
+      const output = document.getElementById('pathOutput');
+
+      try {
+        const reachable = demoGraph.getReachable(start);
+
+        output.innerHTML = `<span class="test-pass">Reachable from "${start}" (${reachable.length} nodes):</span><br>${reachable.join(', ')}`;
+      } catch (e) {
+        output.innerHTML = `<span class="test-fail">Error: ${e.message}</span>`;
+      }
+    }
+  </script>
+</body>
+</html>
