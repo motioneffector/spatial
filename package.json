@@ -18,6 +18,9 @@
     "graph",
     "game-development",
     "map",
+    "pathfinding",
+    "room-based",
+    "directional",
     "typescript"
   ],
   "type": "module",
@@ -31,7 +34,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
   "sideEffects": false,
   "engines": {
