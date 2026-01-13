@@ -437,9 +437,14 @@ describe('Graph Analysis', () => {
       graph.createNode('a')
       graph.createNode('b')
       graph.createNode('c')
+      // Create a cycle where each node has 2+ connections
+      // a: NORTH->b (and reverse SOUTH from b), NORTH<-c's SOUTH reverse
+      // b: SOUTH->a, NORTH->c (and reverse SOUTH from c)
+      // c: SOUTH->b, SOUTH->a
+      // Using SOUTH for c->a to avoid overwriting c's WEST connection
       graph.connect('a', Direction.NORTH, 'b')
-      graph.connect('b', Direction.EAST, 'c')
-      graph.connect('c', Direction.SOUTH, 'a')
+      graph.connect('b', Direction.NORTH, 'c')
+      graph.connect('c', Direction.EAST, 'a')
       expect(graph.getDeadEnds()).toEqual([])
     })
   })
