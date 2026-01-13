@@ -156,9 +156,10 @@ describe('Node Management', () => {
       graph.createNode('node2')
       graph.createNode('node3')
       const nodes = graph.getAllNodes()
-      expect(nodes).toContain('node1')
-      expect(nodes).toContain('node2')
-      expect(nodes).toContain('node3')
+      expect(nodes).toHaveLength(3)
+      expect(nodes).toEqual(expect.arrayContaining(['node1', 'node2', 'node3']))
+      // Verify no extra nodes
+      expect(nodes.every(id => ['node1', 'node2', 'node3'].includes(id))).toBe(true)
     })
 
     it('does not include removed nodes', () => {
@@ -260,7 +261,9 @@ describe('Connection Management', () => {
     it('returns connection data for existing connection', () => {
       graph.connect('node1', Direction.NORTH, 'node2')
       const conn = graph.getConnection('node1', Direction.NORTH)
-      expect(conn).toBeDefined()
+      expect(conn).not.toBeNull()
+      expect(conn?.target).toBe('node2')
+      expect(conn?.direction).toBe('NORTH')
     })
 
     it('returns null for non-existent connection', () => {

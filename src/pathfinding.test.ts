@@ -165,6 +165,7 @@ describe('Pathfinding', () => {
       graph.connect('a', Direction.NORTH, 'b')
       graph.connect('b', Direction.EAST, 'c')
       const reachable = graph.getReachable('a')
+      expect(reachable).toHaveLength(3)
       expect(reachable).toContain('a')
       expect(reachable).toContain('b')
       expect(reachable).toContain('c')
@@ -216,7 +217,7 @@ describe('Weighted Pathfinding', () => {
       graph.createNode('b')
       graph.connect('a', Direction.NORTH, 'b')
       const conn = graph.getConnection('a', Direction.NORTH)
-      expect(conn?.cost || 1).toBe(1)
+      expect(conn?.cost).toBe(1)
     })
 
     it('respects custom cost on connection', () => {

@@ -837,17 +837,23 @@ export function createSpatialGraph(options?: SpatialGraphOptions): SpatialGraph 
       }
     })
 
-    // Restore connections
+    // Restore connections (without validation - use validate() after deserialize to check)
     Object.entries(data.connections).forEach(([from, nodeConns]) => {
         Object.entries(nodeConns).forEach(([dir, conn]) => {
-          const opts: ConnectOptions = {
-            bidirectional: false, // Don't auto-create reverse
+          const connection: InternalConnection = {
+            target: conn.target,
+            direction: dir as DirectionType,
+            ...(conn.gate ? { gate: conn.gate } : {}),
+            cost: conn.cost ?? 1,
+            ...(conn.fromTile ? { fromTile: conn.fromTile } : {}),
+            ...(conn.toTile ? { toTile: conn.toTile } : {}),
+            bidirectional: false,
           }
-          if (conn.cost !== undefined) opts.cost = conn.cost
-          if (conn.fromTile !== undefined) opts.fromTile = conn.fromTile
-          if (conn.toTile !== undefined) opts.toTile = conn.toTile
-          if (conn.gate !== null && conn.gate !== undefined) opts.gate = conn.gate
-          connect(from, dir as DirectionType, conn.target, opts)
+
+          if (!connections.has(from)) {
+            connections.set(from, new Map())
+          }
+          connections.get(from)?.set(dir as DirectionType, connection)
         })
       })
   }

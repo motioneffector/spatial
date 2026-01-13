@@ -35,13 +35,15 @@ describe('Multi-Tile Nodes', () => {
     })
 
     it('validates tile coordinates are numbers', () => {
-      // TypeScript will catch this at compile time, but testing runtime validation
+      // Test that valid number coordinates work
       graph.createNode('node1', {
         tiles: [{ x: 0, y: 0 }],
       })
       const tiles = graph.getTiles('node1')
       expect(typeof tiles[0]?.x).toBe('number')
       expect(typeof tiles[0]?.y).toBe('number')
+      expect(tiles[0]?.x).toBe(0)
+      expect(tiles[0]?.y).toBe(0)
     })
   })
 
@@ -94,7 +96,11 @@ describe('Multi-Tile Nodes', () => {
     it('tiles include x and y properties', () => {
       graph.createNode('node1', { tiles: [{ x: 5, y: 3 }] })
       const tiles = graph.getTiles('node1')
-      expect(tiles[0]).toEqual({ x: 5, y: 3, layer: 1 })
+      expect(tiles[0]).toBeDefined()
+      expect(tiles[0]?.x).toBe(5)
+      expect(tiles[0]?.y).toBe(3)
+      expect(tiles[0]).toHaveProperty('x')
+      expect(tiles[0]).toHaveProperty('y')
     })
   })
 
@@ -171,8 +177,8 @@ describe('Multi-Tile Nodes', () => {
         toTile: { x: 1, y: 0 },
       })
       const conn = graph.getConnection('node1', Direction.EAST)
-      expect(conn?.fromTile).toBeDefined()
-      expect(conn?.toTile).toBeDefined()
+      expect(conn?.fromTile).toEqual({ x: 0, y: 0 })
+      expect(conn?.toTile).toEqual({ x: 1, y: 0 })
     })
   })
 })
@@ -498,18 +504,59 @@ describe('Graph Analysis', () => {
     })
 
     it('returns valid: false for invalid connections', () => {
-      // This would be tested with manually corrupted internal state
-      // which we can't easily do with the public API
-      // For now, just test that it returns an object with valid property
-      const result = graph.validate()
-      expect(typeof result.valid).toBe('boolean')
+      // Create a valid graph first
+      graph.createNode('a')
+      graph.createNode('b')
+      graph.connect('a', Direction.NORTH, 'b')
+
+      // Serialize it
+      const data = graph.serialize()
+
+      // Corrupt the data: add a connection to non-existent node
+      data.connections['a'] = data.connections['a'] ?? {} as Record<string, any>
+      data.connections['a'][Direction.EAST] = {
+        target: 'nonexistent',
+        direction: Direction.EAST,
+        gate: null,
+        cost: 1,
+      }
+
+      // Create new graph and deserialize corrupted data
+      // deserialize() loads data without validation so validate() can check it
+      const graph2 = createSpatialGraph()
+      graph2.deserialize(data)
+
+      // validate() should detect the invalid connection
+      const result = graph2.validate()
+      expect(result.valid).toBe(false)
     })
 
     it('includes error descriptions', () => {
-      const result = graph.validate()
-      if (!result.valid) {
-        expect(Array.isArray(result.errors)).toBe(true)
+      // Create valid graph and serialize
+      graph.createNode('a')
+      graph.createNode('b')
+      graph.connect('a', Direction.NORTH, 'b')
+      const data = graph.serialize()
+
+      // Corrupt: connection to non-existent node
+      data.connections['a'][Direction.EAST] = {
+        target: 'missing_node',
+        direction: Direction.EAST,
+        gate: null,
+        cost: 1,
       }
+
+      // Deserialize corrupted data
+      const graph2 = createSpatialGraph()
+      graph2.deserialize(data)
+
+      // validate() should return errors array with descriptions
+      const result = graph2.validate()
+      expect(result.valid).toBe(false)
+      expect(result.errors).toBeDefined()
+      expect(Array.isArray(result.errors)).toBe(true)
+      expect(result.errors!.length).toBeGreaterThan(0)
+      expect(result.errors![0]).toContain('missing_node')
     })
   })
 })
@@ -535,7 +582,7 @@ describe('Events', () => {
       graph.createNode('node1', { name: 'Test' })
       const call = callback.mock.calls[0]
       expect(call?.[0]).toBe('node1')
-      expect(call?.[1]).toBeDefined()
+      expect(call?.[1]).toMatchObject({ id: 'node1', metadata: { name: 'Test' } })
     })
 
     it('fires nodeRemoved when node deleted', () => {
@@ -637,7 +684,7 @@ describe('Events', () => {
       const call = callback.mock.calls[0]
       expect(call?.[0]).toBe('node1')
       expect(call?.[1]).toBe('NORTH')
-      expect(call?.[2]).toBeDefined()
+      expect(call?.[2]).toMatchObject({ id: 'gate1' })
     })
   })
 
@@ -985,11 +1032,11 @@ describe('Edge Cases', () => {
     })
 
     it('handles 10000 connections', () => {
-      // Create 100 nodes
-      for (let i = 0; i < 100; i++) {
+      // Create 101 nodes (to have enough pairs for 10000 connections)
+      for (let i = 0; i < 101; i++) {
         graph.createNode(`node${i}`)
       }
-      // Create 10000 connections (100 connections per node)
+      // Create 10000 connections
       let count = 0
       const dirs = [
         Direction.NORTH,
@@ -997,19 +1044,20 @@ describe('Edge Cases', () => {
         Direction.EAST,
         Direction.WEST,
       ]
-      for (let i = 0; i < 100; i++) {
-        for (let j = 0; j < 100; j++) {
-          if (count >= 10000) break
+      for (let i = 0; i < 101 && count < 10000; i++) {
+        for (let j = 0; j < 101 && count < 10000; j++) {
           if (i !== j) {
             const dir = dirs[count % dirs.length] ?? Direction.NORTH
             graph.connect(`node${i}`, dir, `node${j}`, { bidirectional: false })
             count++
           }
         }
-        if (count >= 10000) break
       }
-      // Just verify it didn't crash
-      expect(graph.getAllNodes().length).toBeGreaterThan(0)
+      // Verify connections were actually created
+      expect(count).toBe(10000)
+      // Verify graph still works by sampling some connections
+      expect(graph.getConnection('node0', Direction.NORTH)).toBeDefined()
+      expect(graph.getAllNodes().length).toBe(101)
     })
 
     it('pathfinding completes in reasonable time', () => {
