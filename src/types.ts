@@ -82,7 +82,7 @@ export interface NodeData {
  * Condition for conditional gates (integrates with @motioneffector/flags)
  */
 export type Condition = {
-  check: [string, string, unknown] | unknown
+  check: [string, string, unknown]
 }
 
 /**

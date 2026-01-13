@@ -123,5 +123,3 @@ export function registerCustomDirection(
     opposites.set(oppositeDir, dir)
   }
 }
-
-export type { DirectionType as Direction }
