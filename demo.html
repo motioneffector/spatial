@@ -1,0 +1,3001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@motioneffector/spatial - Demo</title>
+  <style>
+/* ============================================
+   RESET & BASE
+   ============================================ */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #e6edf3;
+  background: #0d1117;
+  min-height: 100vh;
+}
+
+/* ============================================
+   CSS VARIABLES
+   ============================================ */
+
+:root {
+  /* Backgrounds */
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --bg-hover: #30363d;
+
+  /* Borders */
+  --border-default: #30363d;
+  --border-muted: #21262d;
+
+  /* Text */
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --text-link: #58a6ff;
+
+  /* Accents */
+  --accent-blue: #1f6feb;
+  --accent-blue-hover: #388bfd;
+  --accent-green: #238636;
+  --accent-green-bright: #3fb950;
+  --accent-red: #da3633;
+  --accent-red-bright: #f85149;
+  --accent-yellow: #d29922;
+  --accent-yellow-bright: #e3b341;
+  --accent-purple: #8957e5;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Typography */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-xxl: 2rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+
+  /* Transitions */
+  --transition-fast: 0.1s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-xl);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.header {
+  margin-bottom: var(--space-xxl);
+  padding-bottom: var(--space-xl);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.header-title {
+  font-size: var(--font-size-xxl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.header-description {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+.header-links {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text-link);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.header-link:hover {
+  background: var(--bg-tertiary);
+  text-decoration: underline;
+}
+
+/* ============================================
+   EXHIBITS
+   ============================================ */
+
+.exhibits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxl);
+}
+
+.exhibit {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.exhibit-header {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.exhibit-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.exhibit-description {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+}
+
+.exhibit-content {
+  padding: var(--space-lg);
+}
+
+.exhibit-interactive {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-lg);
+  min-height: 200px;
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.exhibit-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+}
+
+.exhibit-state {
+  padding: var(--space-md);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.exhibit-state-title {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-sm);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-blue-hover);
+  border-color: var(--accent-blue-hover);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.btn-danger {
+  background: var(--accent-red);
+  color: white;
+  border-color: var(--accent-red);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--accent-red-bright);
+}
+
+.btn-success {
+  background: var(--accent-green);
+  color: white;
+  border-color: var(--accent-green);
+}
+
+.btn-success:hover:not(:disabled) {
+  background: var(--accent-green-bright);
+}
+
+.btn-small {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-xs);
+}
+
+/* ============================================
+   INPUTS
+   ============================================ */
+
+.input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input-mono {
+  font-family: var(--font-mono);
+}
+
+select.input {
+  cursor: pointer;
+}
+
+textarea.input {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* ============================================
+   TOGGLE
+   ============================================ */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: var(--bg-hover);
+  border-radius: 11px;
+  transition: background var(--transition-normal);
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: var(--text-primary);
+  border-radius: 50%;
+  transition: transform var(--transition-normal);
+}
+
+.toggle input {
+  display: none;
+}
+
+.toggle input:checked + .toggle-switch {
+  background: var(--accent-blue);
+}
+
+.toggle input:checked + .toggle-switch::after {
+  transform: translateX(18px);
+}
+
+.toggle-label {
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   TAGS / BADGES
+   ============================================ */
+
+.tag {
+  display: inline-block;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.tag-blue {
+  background: rgba(31, 111, 235, 0.2);
+  color: var(--accent-blue-hover);
+}
+
+.tag-green {
+  background: rgba(35, 134, 54, 0.2);
+  color: var(--accent-green-bright);
+}
+
+.tag-red {
+  background: rgba(218, 54, 51, 0.2);
+  color: var(--accent-red-bright);
+}
+
+.tag-yellow {
+  background: rgba(210, 153, 34, 0.2);
+  color: var(--accent-yellow-bright);
+}
+
+.tag-purple {
+  background: rgba(137, 87, 229, 0.2);
+  color: var(--accent-purple);
+}
+
+/* ============================================
+   TEST RUNNER
+   ============================================ */
+
+.test-runner {
+  margin-top: var(--space-xxl);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.test-runner-header {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.test-runner-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+}
+
+.test-runner-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.test-runner-content {
+  padding: var(--space-lg);
+}
+
+.test-progress {
+  margin-bottom: var(--space-lg);
+}
+
+.test-progress-bar {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--space-sm);
+}
+
+.test-progress-fill {
+  height: 100%;
+  background: var(--accent-blue);
+  border-radius: 4px;
+  transition: width var(--transition-fast);
+  width: 0%;
+}
+
+.test-progress-fill.success {
+  background: var(--accent-green);
+}
+
+.test-progress-fill.failure {
+  background: var(--accent-red);
+}
+
+.test-progress-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.test-output {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.test-output-empty {
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.test-item {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--border-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.test-item:last-child {
+  border-bottom: none;
+}
+
+.test-icon {
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+}
+
+.test-icon.pass {
+  color: var(--accent-green-bright);
+}
+
+.test-icon.fail {
+  color: var(--accent-red-bright);
+}
+
+.test-name {
+  color: var(--text-primary);
+}
+
+.test-error {
+  color: var(--accent-red-bright);
+  font-size: var(--font-size-xs);
+  margin-top: var(--space-xs);
+}
+
+.test-summary {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.test-summary-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.test-summary-item.passed {
+  color: var(--accent-green-bright);
+}
+
+.test-summary-item.failed {
+  color: var(--accent-red-bright);
+}
+
+.test-summary-item.skipped {
+  color: var(--text-muted);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-success { color: var(--accent-green-bright); }
+.text-error { color: var(--accent-red-bright); }
+.text-warning { color: var(--accent-yellow-bright); }
+
+.font-mono { font-family: var(--font-mono); }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-xs { gap: var(--space-xs); }
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.gap-lg { gap: var(--space-lg); }
+
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+
+.p-sm { padding: var(--space-sm); }
+.p-md { padding: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
+
+.hidden { display: none; }
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-hover);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-default);
+}
+
+/* ============================================
+   EXHIBIT-SPECIFIC STYLES
+   ============================================ */
+
+/* Dungeon Explorer */
+.dungeon-map {
+  position: relative;
+  width: 100%;
+  height: 450px;
+  overflow: hidden;
+}
+
+.dungeon-map svg {
+  width: 100%;
+  height: 100%;
+}
+
+.room {
+  cursor: pointer;
+  transition: filter var(--transition-fast);
+}
+
+.room:hover {
+  filter: brightness(1.2);
+}
+
+.room-rect {
+  fill: var(--bg-tertiary);
+  stroke: var(--border-default);
+  stroke-width: 2;
+  rx: 8;
+}
+
+.room-rect.current {
+  stroke: var(--accent-blue);
+  stroke-width: 3;
+}
+
+.room-label {
+  fill: var(--text-primary);
+  font-size: 12px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.room-hidden {
+  opacity: 0.3;
+}
+
+.room-hidden .room-rect {
+  stroke-dasharray: 5,5;
+}
+
+.connection-line {
+  stroke: var(--border-default);
+  stroke-width: 2;
+  fill: none;
+}
+
+.connection-line.hidden {
+  stroke-dasharray: 5,5;
+  opacity: 0.3;
+}
+
+.connection-line.path-preview {
+  stroke: var(--accent-yellow);
+  stroke-width: 3;
+  stroke-dasharray: none;
+}
+
+.connection-line.blocked {
+  animation: pulse-red 0.3s ease-in-out 3;
+}
+
+@keyframes pulse-red {
+  0%, 100% { stroke: var(--border-default); }
+  50% { stroke: var(--accent-red); }
+}
+
+.player-orb {
+  fill: url(#orbGradient);
+  filter: drop-shadow(0 0 8px var(--accent-blue));
+  transition: cx 0.3s ease-in-out, cy 0.3s ease-in-out;
+}
+
+.padlock {
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.padlock:hover {
+  transform: scale(1.1);
+}
+
+.padlock.shake {
+  animation: shake 0.1s ease-in-out 3;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.padlock.unlocking {
+  animation: unlock 0.3s ease-out forwards;
+}
+
+@keyframes unlock {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-10px); opacity: 0; }
+}
+
+/* Compass and Keyring */
+.dungeon-controls {
+  display: flex;
+  gap: var(--space-xl);
+  align-items: flex-start;
+  margin-top: var(--space-md);
+}
+
+.compass-rose {
+  display: grid;
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(4, 36px);
+  gap: 4px;
+}
+
+.compass-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.compass-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.compass-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.compass-btn.locked {
+  position: relative;
+}
+
+.compass-btn.locked::after {
+  content: '🔒';
+  font-size: 8px;
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+}
+
+.compass-center {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.keyring {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.keyring-title {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.keyring-keys {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.key-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.key-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.key-icon {
+  width: 24px;
+  height: 24px;
+  transition: filter var(--transition-fast);
+}
+
+.key-icon.held {
+  filter: drop-shadow(0 0 6px var(--accent-yellow));
+}
+
+.key-icon.not-held {
+  opacity: 0.3;
+}
+
+.key-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* Graph Workshop */
+.workshop-canvas {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+}
+
+.workshop-canvas svg {
+  width: 100%;
+  height: 100%;
+}
+
+.workshop-node {
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.workshop-node:hover {
+  transform: scale(1.05);
+}
+
+.workshop-node circle {
+  fill: var(--bg-tertiary);
+  stroke: var(--border-default);
+  stroke-width: 2;
+}
+
+.workshop-node.selected circle {
+  stroke: var(--accent-blue);
+  stroke-width: 3;
+}
+
+.workshop-node.orphan circle {
+  animation: pulse-orange 1s ease-in-out infinite;
+}
+
+.workshop-node.dead-end circle {
+  animation: pulse-yellow 1s ease-in-out infinite;
+}
+
+.workshop-node.reachable circle {
+  fill: rgba(31, 111, 235, 0.3);
+}
+
+.workshop-node.unreachable circle {
+  opacity: 0.3;
+}
+
+@keyframes pulse-orange {
+  0%, 100% { stroke: var(--border-default); }
+  50% { stroke: orange; stroke-width: 4; }
+}
+
+@keyframes pulse-yellow {
+  0%, 100% { stroke: var(--border-default); }
+  50% { stroke: var(--accent-yellow); stroke-width: 4; }
+}
+
+.workshop-node text {
+  fill: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.workshop-connection {
+  stroke: var(--border-default);
+  stroke-width: 2;
+  fill: none;
+  marker-end: url(#arrowhead);
+}
+
+.workshop-connection.has-gate {
+  stroke-dasharray: 5,3;
+}
+
+.mini-player {
+  cursor: grab;
+}
+
+.mini-player:active {
+  cursor: grabbing;
+}
+
+.mini-player circle {
+  fill: var(--accent-purple);
+  filter: drop-shadow(0 0 6px var(--accent-purple));
+}
+
+/* Pathfinding Theater */
+.pathfinding-graph {
+  position: relative;
+  width: 100%;
+  height: 350px;
+}
+
+.pathfinding-graph svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pf-node {
+  cursor: pointer;
+}
+
+.pf-node circle.node-bg {
+  fill: var(--bg-tertiary);
+  stroke: var(--border-default);
+  stroke-width: 2;
+}
+
+.pf-node.start circle.node-bg {
+  stroke: var(--accent-green);
+  stroke-width: 3;
+}
+
+.pf-node.end circle.node-bg {
+  stroke: var(--accent-red);
+  stroke-width: 3;
+}
+
+.pf-node.explored circle.node-bg {
+  fill: var(--accent-blue);
+}
+
+.pf-node.frontier circle.node-bg {
+  animation: pulse-frontier 0.5s ease-in-out infinite;
+}
+
+@keyframes pulse-frontier {
+  0%, 100% { stroke-width: 2; }
+  50% { stroke-width: 4; stroke: var(--accent-blue); }
+}
+
+.pf-node.unexplored {
+  opacity: 0.5;
+}
+
+.pf-node .node-label {
+  fill: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.pf-node .distance-label {
+  fill: var(--text-secondary);
+  font-size: 10px;
+  text-anchor: middle;
+}
+
+.pf-connection {
+  stroke: var(--border-default);
+  stroke-width: 2;
+  fill: none;
+}
+
+.pf-connection.final-path {
+  stroke: var(--accent-yellow);
+  stroke-width: 4;
+}
+
+.pf-connection.locked {
+  stroke-dasharray: 5,3;
+}
+
+.cost-label {
+  fill: var(--text-muted);
+  font-size: 11px;
+  text-anchor: middle;
+  cursor: pointer;
+}
+
+.cost-label:hover {
+  fill: var(--text-primary);
+}
+
+.pf-queue {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  margin-top: var(--space-md);
+  padding: var(--space-sm);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  min-height: 40px;
+}
+
+.pf-queue-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.pf-queue-tokens {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.queue-token {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 28px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  transition: all var(--transition-normal);
+}
+
+.speed-slider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.speed-slider input[type="range"] {
+  width: 100px;
+}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Directional graph for room-based spatial navigation</p>
+      <nav class="header-links">
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link" target="_blank">
+          📦 npm
+        </a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link" target="_blank">
+          💻 GitHub
+        </a>
+        <a href="https://github.com/motioneffector/spatial/wiki" class="header-link" target="_blank">
+          📖 Manual
+        </a>
+      </nav>
+    </header>
+
+    <main class="exhibits">
+      <!-- Exhibit 1: Dungeon Explorer -->
+      <section class="exhibit">
+        <div class="exhibit-header">
+          <h2 class="exhibit-title">Dungeon Explorer</h2>
+          <p class="exhibit-description">Navigate through a connected graph with locked doors, keys, and pathfinding. Click rooms to move, collect keys to unlock doors.</p>
+        </div>
+        <div class="exhibit-content">
+          <div class="exhibit-interactive" id="exhibit-1">
+            <div class="dungeon-map" id="dungeon-map"></div>
+            <div class="dungeon-controls">
+              <div class="compass-rose" id="compass-rose"></div>
+              <div class="keyring">
+                <div class="keyring-title">Keyring</div>
+                <div class="keyring-keys" id="keyring"></div>
+              </div>
+            </div>
+          </div>
+          <div class="exhibit-controls">
+            <button class="btn btn-secondary" id="dungeon-reset">Reset</button>
+            <label class="toggle">
+              <input type="checkbox" id="find-path-toggle">
+              <span class="toggle-switch"></span>
+              <span class="toggle-label">Find Path Mode</span>
+            </label>
+            <button class="btn btn-secondary" id="reveal-secret">Reveal Secret Passage</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Exhibit 2: Graph Workshop -->
+      <section class="exhibit">
+        <div class="exhibit-header">
+          <h2 class="exhibit-title">Graph Workshop</h2>
+          <p class="exhibit-description">Modify, analyze, and build spatial graphs interactively. Click "Analyze" to see orphans and dead-ends, drag the mini-player to test reachability.</p>
+        </div>
+        <div class="exhibit-content">
+          <div class="exhibit-interactive" id="exhibit-2">
+            <div class="workshop-canvas" id="workshop-canvas"></div>
+          </div>
+          <div class="exhibit-controls">
+            <button class="btn btn-primary" id="workshop-add-node">+ Node</button>
+            <button class="btn btn-secondary" id="workshop-analyze">🔍 Analyze</button>
+            <button class="btn btn-secondary" id="workshop-clear-analysis">Clear Analysis</button>
+            <select class="input" id="workshop-examples">
+              <option value="">Load Example...</option>
+              <option value="minimal">Minimal (3 nodes)</option>
+              <option value="dungeon">Dungeon</option>
+              <option value="multifloor">Multi-floor</option>
+              <option value="disconnected">Disconnected</option>
+              <option value="empty">Empty</option>
+            </select>
+            <button class="btn btn-danger btn-small" id="workshop-delete-mode">🗑 Delete Mode</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Exhibit 3: Pathfinding Theater -->
+      <section class="exhibit">
+        <div class="exhibit-header">
+          <h2 class="exhibit-title">Pathfinding Theater</h2>
+          <p class="exhibit-description">Watch Dijkstra's algorithm find the shortest path step by step. The "obvious" short path has high costs - watch the algorithm find the better route.</p>
+        </div>
+        <div class="exhibit-content">
+          <div class="exhibit-interactive" id="exhibit-3">
+            <div class="pathfinding-graph" id="pathfinding-graph"></div>
+            <div class="pf-queue">
+              <span class="pf-queue-label">Queue:</span>
+              <div class="pf-queue-tokens" id="pf-queue-tokens"></div>
+            </div>
+          </div>
+          <div class="exhibit-controls">
+            <button class="btn btn-primary" id="pf-play">▶ Play</button>
+            <button class="btn btn-secondary" id="pf-step">Step →</button>
+            <button class="btn btn-secondary" id="pf-reset">Reset</button>
+            <div class="speed-slider">
+              <span class="text-secondary">Speed:</span>
+              <input type="range" id="pf-speed" min="50" max="500" value="200">
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="pf-has-key">
+              <span class="toggle-switch"></span>
+              <span class="toggle-label">Has Key</span>
+            </label>
+            <button class="btn btn-secondary btn-small" id="pf-randomize">Randomize Costs</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="test-runner">
+      <div class="test-runner-header">
+        <h2 class="test-runner-title">Test Suite</h2>
+        <div class="test-runner-actions">
+          <button class="btn btn-primary" id="run-tests">Run Tests</button>
+          <button class="btn btn-secondary" id="run-fuzz">Run Fuzz Tests</button>
+        </div>
+      </div>
+      <div class="test-runner-content">
+        <div class="test-progress">
+          <div class="test-progress-bar">
+            <div class="test-progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="test-progress-text" id="progress-text">Ready to run tests</div>
+        </div>
+        <div class="test-output" id="test-output">
+          <div class="test-output-empty">Click "Run Tests" to execute the test suite</div>
+        </div>
+        <div class="test-summary hidden" id="test-summary">
+          <div class="test-summary-item passed">
+            <span>✓</span>
+            <span id="passed-count">0</span> passed
+          </div>
+          <div class="test-summary-item failed">
+            <span>✗</span>
+            <span id="failed-count">0</span> failed
+          </div>
+          <div class="test-summary-item skipped">
+            <span>○</span>
+            <span id="skipped-count">0</span> skipped
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module">
+// ============================================
+// INLINE LIBRARY: @motioneffector/spatial
+// ============================================
+
+const Direction = {
+  NORTH: 'NORTH',
+  NORTHEAST: 'NORTHEAST',
+  EAST: 'EAST',
+  SOUTHEAST: 'SOUTHEAST',
+  SOUTH: 'SOUTH',
+  SOUTHWEST: 'SOUTHWEST',
+  WEST: 'WEST',
+  NORTHWEST: 'NORTHWEST',
+  UP: 'UP',
+  DOWN: 'DOWN',
+  IN: 'IN',
+  OUT: 'OUT',
+}
+
+const opposites = new Map([
+  ['NORTH', 'SOUTH'], ['SOUTH', 'NORTH'],
+  ['EAST', 'WEST'], ['WEST', 'EAST'],
+  ['NORTHEAST', 'SOUTHWEST'], ['SOUTHWEST', 'NORTHEAST'],
+  ['NORTHWEST', 'SOUTHEAST'], ['SOUTHEAST', 'NORTHWEST'],
+  ['UP', 'DOWN'], ['DOWN', 'UP'],
+  ['IN', 'OUT'], ['OUT', 'IN'],
+])
+
+Direction.opposite = (dir) => opposites.get(dir) ?? null
+
+Direction.parse = (input) => {
+  const map = {
+    'north': 'NORTH', 'n': 'NORTH',
+    'south': 'SOUTH', 's': 'SOUTH',
+    'east': 'EAST', 'e': 'EAST',
+    'west': 'WEST', 'w': 'WEST',
+    'northeast': 'NORTHEAST', 'ne': 'NORTHEAST',
+    'northwest': 'NORTHWEST', 'nw': 'NORTHWEST',
+    'southeast': 'SOUTHEAST', 'se': 'SOUTHEAST',
+    'southwest': 'SOUTHWEST', 'sw': 'SOUTHWEST',
+    'up': 'UP', 'u': 'UP',
+    'down': 'DOWN', 'd': 'DOWN',
+    'in': 'IN', 'out': 'OUT',
+  }
+  return map[input.toLowerCase()] ?? null
+}
+
+class ValidationError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = 'ValidationError'
+  }
+}
+
+function createSpatialGraph(options = {}) {
+  const nodes = new Map()
+  const connections = new Map()
+  const listeners = new Map()
+  const { flagStore, canTraverse: customCanTraverse } = options
+
+  const emit = (event, ...args) => {
+    const callbacks = listeners.get(event)
+    if (callbacks) callbacks.forEach(cb => cb(...args))
+  }
+
+  const defaultCanTraverse = (connection, gate, context) => {
+    if (!gate) return { allowed: true }
+    if (gate.hidden && !context.discovered?.includes(gate.id)) {
+      return { allowed: false, reason: 'hidden', gateId: gate.id }
+    }
+    if (gate.locked) {
+      if (gate.keyId && context.inventory?.includes(gate.keyId)) {
+        return { allowed: true }
+      }
+      return { allowed: false, reason: 'locked', gateId: gate.id }
+    }
+    return { allowed: true }
+  }
+
+  const createNode = (id, opts = {}) => {
+    if (!id) throw new ValidationError('Node id cannot be empty')
+    if (nodes.has(id)) throw new ValidationError(`Node "${id}" already exists`)
+    const { tiles, layer = 1, ...metadata } = opts
+    const nodeData = { id, metadata, layer, ...(tiles ? { tiles } : {}) }
+    nodes.set(id, nodeData)
+    emit('nodeCreated', id, nodeData)
+  }
+
+  const getNode = (id) => nodes.get(id) ?? null
+  const hasNode = (id) => nodes.has(id)
+  const getAllNodes = () => Array.from(nodes.keys())
+
+  const removeNode = (id) => {
+    const node = nodes.get(id)
+    if (!node) throw new ValidationError(`Node "${id}" does not exist`)
+    connections.delete(id)
+    connections.forEach(nodeConns => {
+      for (const [dir, conn] of nodeConns) {
+        if (conn.target === id) nodeConns.delete(dir)
+      }
+    })
+    nodes.delete(id)
+    emit('nodeRemoved', id)
+    return node
+  }
+
+  const connect = (from, direction, to, opts = {}) => {
+    if (!nodes.has(from)) throw new ValidationError(`Source node "${from}" does not exist`)
+    if (!nodes.has(to)) throw new ValidationError(`Target node "${to}" does not exist`)
+    const { bidirectional = true, cost = 1, gate } = opts
+    const conn = { target: to, direction, cost, bidirectional, ...(gate ? { gate } : {}) }
+    if (!connections.has(from)) connections.set(from, new Map())
+    connections.get(from).set(direction, conn)
+    emit('connectionCreated', from, direction, to)
+    if (bidirectional) {
+      const opp = Direction.opposite(direction)
+      if (opp && !connections.get(to)?.has(opp)) {
+        if (!connections.has(to)) connections.set(to, new Map())
+        connections.get(to).set(opp, { target: from, direction: opp, cost, bidirectional: false, ...(gate ? { gate } : {}) })
+        emit('connectionCreated', to, opp, from)
+      }
+    }
+  }
+
+  const disconnect = (from, direction, opts = {}) => {
+    const nodeConns = connections.get(from)
+    const conn = nodeConns?.get(direction)
+    if (conn) {
+      nodeConns.delete(direction)
+      emit('connectionRemoved', from, direction)
+      if (opts.bidirectional ?? conn.bidirectional) {
+        const opp = Direction.opposite(direction)
+        if (opp) {
+          connections.get(conn.target)?.delete(opp)
+          emit('connectionRemoved', conn.target, opp)
+        }
+      }
+    }
+  }
+
+  const getConnection = (from, direction) => {
+    const conn = connections.get(from)?.get(direction)
+    if (!conn) return null
+    return { target: conn.target, direction, gate: conn.gate ?? null, cost: conn.cost }
+  }
+
+  const getExits = (nodeId) => {
+    if (!nodes.has(nodeId)) throw new ValidationError(`Node "${nodeId}" does not exist`)
+    const nodeConns = connections.get(nodeId)
+    if (!nodeConns) return []
+    return Array.from(nodeConns.entries()).map(([dir, conn]) => ({
+      direction: dir, target: conn.target, gate: conn.gate ?? null, cost: conn.cost
+    }))
+  }
+
+  const getDestination = (from, direction) => {
+    return connections.get(from)?.get(direction)?.target ?? null
+  }
+
+  const setGate = (from, direction, gate) => {
+    const conn = connections.get(from)?.get(direction)
+    if (!conn) throw new ValidationError(`Connection does not exist`)
+    conn.gate = gate
+    emit('gateUpdated', from, direction, gate)
+  }
+
+  const updateGate = (from, direction, updates) => {
+    const conn = connections.get(from)?.get(direction)
+    if (!conn?.gate) throw new ValidationError(`Gate does not exist`)
+    Object.assign(conn.gate, updates)
+    emit('gateUpdated', from, direction, conn.gate)
+  }
+
+  const removeGate = (from, direction) => {
+    const conn = connections.get(from)?.get(direction)
+    if (conn?.gate) {
+      delete conn.gate
+      emit('gateUpdated', from, direction, null)
+    }
+  }
+
+  const getGate = (from, direction) => connections.get(from)?.get(direction)?.gate ?? null
+
+  const canTraverse = (from, direction, context = {}) => {
+    const conn = getConnection(from, direction)
+    if (!conn) return { allowed: false, reason: 'no connection' }
+    const fn = customCanTraverse ?? defaultCanTraverse
+    return fn(conn, conn.gate, context)
+  }
+
+  const findPath = (from, to, opts = {}) => {
+    if (from === to) return [from]
+    const { maxLength = Infinity, context = {} } = opts
+    const distances = new Map([[from, 0]])
+    const previous = new Map()
+    const visited = new Set()
+    const queue = [{ node: from, cost: 0 }]
+
+    while (queue.length > 0) {
+      queue.sort((a, b) => a.cost - b.cost)
+      const current = queue.shift()
+      if (visited.has(current.node)) continue
+      visited.add(current.node)
+      if (current.node === to) {
+        const path = []
+        let node = to
+        while (node) { path.unshift(node); node = previous.get(node) }
+        return path
+      }
+      for (const exit of getExits(current.node)) {
+        const result = canTraverse(current.node, exit.direction, context)
+        if (!result.allowed) continue
+        const newCost = current.cost + (exit.cost ?? 1)
+        if (!distances.has(exit.target) || newCost < distances.get(exit.target)) {
+          distances.set(exit.target, newCost)
+          previous.set(exit.target, current.node)
+          if (!visited.has(exit.target)) queue.push({ node: exit.target, cost: newCost })
+        }
+      }
+    }
+    return null
+  }
+
+  const getDistance = (from, to, opts = {}) => {
+    if (from === to) return 0
+    const { context = {} } = opts
+    const distances = new Map([[from, 0]])
+    const visited = new Set()
+    const queue = [{ node: from, cost: 0 }]
+
+    while (queue.length > 0) {
+      queue.sort((a, b) => a.cost - b.cost)
+      const current = queue.shift()
+      if (visited.has(current.node)) continue
+      visited.add(current.node)
+      if (current.node === to) return current.cost
+      for (const exit of getExits(current.node)) {
+        const result = canTraverse(current.node, exit.direction, context)
+        if (!result.allowed) continue
+        const newCost = current.cost + (exit.cost ?? 1)
+        if (!distances.has(exit.target) || newCost < distances.get(exit.target)) {
+          distances.set(exit.target, newCost)
+          if (!visited.has(exit.target)) queue.push({ node: exit.target, cost: newCost })
+        }
+      }
+    }
+    return Infinity
+  }
+
+  const canReach = (from, to, opts) => getDistance(from, to, opts) !== Infinity
+
+  const getReachable = (from, opts = {}) => {
+    const visited = new Set([from])
+    const queue = [{ node: from, distance: 0 }]
+    const { maxDistance = Infinity, context = {} } = opts
+    while (queue.length > 0) {
+      const current = queue.shift()
+      if (current.distance >= maxDistance) continue
+      for (const exit of getExits(current.node)) {
+        const result = canTraverse(current.node, exit.direction, context)
+        if (!result.allowed) continue
+        if (!visited.has(exit.target)) {
+          visited.add(exit.target)
+          queue.push({ node: exit.target, distance: current.distance + 1 })
+        }
+      }
+    }
+    return Array.from(visited)
+  }
+
+  const setZone = (nodeId, zoneId) => {
+    const node = nodes.get(nodeId)
+    if (!node) throw new ValidationError(`Node "${nodeId}" does not exist`)
+    node.zone = zoneId
+  }
+
+  const getZone = (nodeId) => nodes.get(nodeId)?.zone ?? null
+
+  const getNodesInZone = (zoneId) => {
+    const result = []
+    nodes.forEach((node, id) => { if (node.zone === zoneId) result.push(id) })
+    return result
+  }
+
+  const removeZone = (nodeId) => {
+    const node = nodes.get(nodeId)
+    if (node) delete node.zone
+  }
+
+  const getOrphans = () => {
+    const result = []
+    nodes.forEach((_, id) => {
+      const exits = getExits(id)
+      if (exits.length > 0) return
+      let hasIncoming = false
+      connections.forEach(nodeConns => {
+        nodeConns.forEach(conn => { if (conn.target === id) hasIncoming = true })
+      })
+      if (!hasIncoming) result.push(id)
+    })
+    return result
+  }
+
+  const getDeadEnds = () => {
+    const result = []
+    nodes.forEach((_, id) => {
+      if (getExits(id).length === 1) result.push(id)
+    })
+    return result
+  }
+
+  const getSubgraphs = () => {
+    const visited = new Set()
+    const subgraphs = []
+    nodes.forEach((_, startNode) => {
+      if (visited.has(startNode)) return
+      const subgraph = []
+      const queue = [startNode]
+      while (queue.length > 0) {
+        const node = queue.shift()
+        if (visited.has(node)) continue
+        visited.add(node)
+        subgraph.push(node)
+        getExits(node).forEach(exit => { if (!visited.has(exit.target)) queue.push(exit.target) })
+        connections.forEach((nodeConns, fromNode) => {
+          nodeConns.forEach(conn => {
+            if (conn.target === node && !visited.has(fromNode)) queue.push(fromNode)
+          })
+        })
+      }
+      subgraphs.push(subgraph)
+    })
+    return subgraphs
+  }
+
+  const validate = () => {
+    const errors = []
+    connections.forEach((nodeConns, from) => {
+      if (!nodes.has(from)) errors.push(`Connection from non-existent node "${from}"`)
+      nodeConns.forEach((conn, dir) => {
+        if (!nodes.has(conn.target)) errors.push(`Connection to non-existent node "${conn.target}"`)
+      })
+    })
+    return errors.length === 0 ? { valid: true } : { valid: false, errors }
+  }
+
+  const on = (event, callback) => {
+    if (!listeners.has(event)) listeners.set(event, new Set())
+    listeners.get(event).add(callback)
+    return () => listeners.get(event)?.delete(callback)
+  }
+
+  const serialize = () => {
+    const nodesData = {}
+    nodes.forEach((node, id) => { nodesData[id] = { ...node } })
+    const connectionsData = {}
+    connections.forEach((nodeConns, from) => {
+      connectionsData[from] = {}
+      nodeConns.forEach((conn, dir) => {
+        connectionsData[from][dir] = { target: conn.target, direction: dir, gate: conn.gate ?? null, cost: conn.cost }
+      })
+    })
+    return { nodes: nodesData, connections: connectionsData }
+  }
+
+  const deserialize = (data) => {
+    nodes.clear()
+    connections.clear()
+    if (!data.nodes) throw new ValidationError('Invalid serialized data: missing nodes')
+    Object.entries(data.nodes).forEach(([id, nodeData]) => {
+      createNode(id, { ...nodeData.metadata, layer: nodeData.layer, tiles: nodeData.tiles })
+      if (nodeData.zone) setZone(id, nodeData.zone)
+    })
+    Object.entries(data.connections).forEach(([from, nodeConns]) => {
+      Object.entries(nodeConns).forEach(([dir, conn]) => {
+        if (!connections.has(from)) connections.set(from, new Map())
+        connections.get(from).set(dir, { target: conn.target, direction: dir, gate: conn.gate, cost: conn.cost ?? 1, bidirectional: false })
+      })
+    })
+  }
+
+  const getNodesInLayer = (layer) => {
+    const result = []
+    nodes.forEach((node, id) => { if (node.layer === layer) result.push(id) })
+    return result
+  }
+
+  const registerDirection = (direction, opts) => {
+    opposites.set(direction, opts.opposite ?? null)
+    if (opts.opposite) opposites.set(opts.opposite, direction)
+  }
+
+  return {
+    createNode, getNode, hasNode, removeNode, getAllNodes,
+    connect, disconnect, getConnection, getExits, getDestination,
+    setGate, updateGate, removeGate, getGate,
+    canTraverse, findPath, getDistance, canReach, getReachable,
+    setZone, getZone, getNodesInZone, removeZone,
+    getOrphans, getDeadEnds, getSubgraphs, validate,
+    on, serialize, deserialize, getNodesInLayer, registerDirection
+  }
+}
+
+// ============================================
+// EXHIBIT 1: DUNGEON EXPLORER
+// ============================================
+
+const dungeonGraph = createSpatialGraph()
+let currentRoom = 'guard-room'
+let heldKeys = ['brass']
+let discoveredPassages = []
+let findPathMode = false
+
+// Room positions for visualization
+const roomPositions = {
+  'guard-room': { x: 120, y: 80 },
+  'hall': { x: 300, y: 80 },
+  'treasury': { x: 480, y: 80 },
+  'library': { x: 300, y: 200 },
+  'secret-room': { x: 480, y: 200 },
+  'basement': { x: 300, y: 320 },
+  'armory': { x: 120, y: 200 },
+  'dungeon': { x: 120, y: 320 },
+}
+
+const dungeonConnections = [
+  { from: 'guard-room', dir: Direction.EAST, to: 'hall' },
+  { from: 'hall', dir: Direction.EAST, to: 'treasury', gate: { id: 'treasury-door', locked: true, keyId: 'brass' } },
+  { from: 'hall', dir: Direction.SOUTH, to: 'library' },
+  { from: 'library', dir: Direction.EAST, to: 'secret-room', gate: { id: 'secret-passage', hidden: true } },
+  { from: 'library', dir: Direction.SOUTH, to: 'basement', gate: { id: 'basement-door', locked: true, keyId: 'basement' } },
+  { from: 'guard-room', dir: Direction.SOUTH, to: 'armory' },
+  { from: 'armory', dir: Direction.SOUTH, to: 'dungeon', gate: { id: 'dungeon-door', locked: true, keyId: 'vault' } },
+]
+
+const allKeys = [
+  { id: 'brass', name: 'Brass', color: '#d4a574' },
+  { id: 'vault', name: 'Vault', color: '#8b8b8b' },
+  { id: 'basement', name: 'Basement', color: '#6b4423' },
+]
+
+function initDungeonGraph() {
+  Object.keys(roomPositions).forEach(id => {
+    dungeonGraph.createNode(id, { name: id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) })
+  })
+  dungeonConnections.forEach(({ from, dir, to, gate }) => {
+    dungeonGraph.connect(from, dir, to, gate ? { gate } : {})
+  })
+}
+
+function renderDungeon() {
+  const container = document.getElementById('dungeon-map')
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('viewBox', '0 0 600 400')
+
+  // Gradient for player orb
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+  const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient')
+  gradient.id = 'orbGradient'
+  const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop')
+  stop1.setAttribute('offset', '0%')
+  stop1.setAttribute('stop-color', '#58a6ff')
+  const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop')
+  stop2.setAttribute('offset', '100%')
+  stop2.setAttribute('stop-color', '#1f6feb')
+  gradient.appendChild(stop1)
+  gradient.appendChild(stop2)
+  defs.appendChild(gradient)
+  svg.appendChild(defs)
+
+  // Draw connections
+  dungeonConnections.forEach(({ from, dir, to, gate }) => {
+    const fromPos = roomPositions[from]
+    const toPos = roomPositions[to]
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+    line.setAttribute('x1', fromPos.x)
+    line.setAttribute('y1', fromPos.y)
+    line.setAttribute('x2', toPos.x)
+    line.setAttribute('y2', toPos.y)
+    line.classList.add('connection-line')
+    line.dataset.from = from
+    line.dataset.to = to
+    if (gate?.hidden && !discoveredPassages.includes(gate.id)) {
+      line.classList.add('hidden')
+    }
+    svg.appendChild(line)
+
+    // Draw padlock if locked
+    if (gate?.locked) {
+      const midX = (fromPos.x + toPos.x) / 2
+      const midY = (fromPos.y + toPos.y) / 2
+      const padlock = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+      padlock.setAttribute('x', midX)
+      padlock.setAttribute('y', midY + 5)
+      padlock.setAttribute('text-anchor', 'middle')
+      padlock.setAttribute('font-size', '16')
+      padlock.textContent = '🔒'
+      padlock.classList.add('padlock')
+      padlock.dataset.gateId = gate.id
+      padlock.dataset.keyId = gate.keyId
+      padlock.dataset.from = from
+      padlock.dataset.dir = dir
+      padlock.onclick = (e) => handlePadlockClick(e, gate, from, dir)
+      svg.appendChild(padlock)
+    }
+  })
+
+  // Draw rooms
+  Object.entries(roomPositions).forEach(([id, pos]) => {
+    const gate = dungeonConnections.find(c => c.to === id && c.gate?.hidden)?.gate
+    const isHidden = gate && !discoveredPassages.includes(gate.id)
+
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    group.classList.add('room')
+    if (isHidden) group.classList.add('room-hidden')
+    group.dataset.roomId = id
+    group.onclick = () => handleRoomClick(id)
+
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+    rect.setAttribute('x', pos.x - 50)
+    rect.setAttribute('y', pos.y - 25)
+    rect.setAttribute('width', 100)
+    rect.setAttribute('height', 50)
+    rect.classList.add('room-rect')
+    if (id === currentRoom) rect.classList.add('current')
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    label.setAttribute('x', pos.x)
+    label.setAttribute('y', pos.y + 5)
+    label.classList.add('room-label')
+    label.textContent = id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+
+    group.appendChild(rect)
+    group.appendChild(label)
+    svg.appendChild(group)
+  })
+
+  // Draw player orb
+  const orbPos = roomPositions[currentRoom]
+  const orb = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+  orb.setAttribute('cx', orbPos.x)
+  orb.setAttribute('cy', orbPos.y)
+  orb.setAttribute('r', 12)
+  orb.classList.add('player-orb')
+  orb.id = 'player-orb'
+  svg.appendChild(orb)
+
+  container.innerHTML = ''
+  container.appendChild(svg)
+  renderCompass()
+  renderKeyring()
+}
+
+function handleRoomClick(targetRoom) {
+  if (targetRoom === currentRoom) {
+    // Bounce animation
+    const orb = document.getElementById('player-orb')
+    orb.style.transform = 'scale(1.2)'
+    setTimeout(() => orb.style.transform = '', 150)
+    return
+  }
+
+  const context = { inventory: heldKeys, discovered: discoveredPassages }
+
+  if (findPathMode) {
+    const path = dungeonGraph.findPath(currentRoom, targetRoom, { context })
+    if (path) {
+      highlightPath(path)
+    }
+    return
+  }
+
+  const path = dungeonGraph.findPath(currentRoom, targetRoom, { context })
+  if (path && path.length > 1) {
+    animateMovement(path)
+  } else {
+    // Try to find what's blocking
+    const exits = dungeonGraph.getExits(currentRoom)
+    const blockedExit = exits.find(e => {
+      const dest = dungeonGraph.getDestination(currentRoom, e.direction)
+      return dest === targetRoom || dungeonGraph.findPath(dest, targetRoom, { context })
+    })
+    if (blockedExit?.gate) {
+      showBlockedFeedback(blockedExit.gate)
+    }
+  }
+}
+
+function animateMovement(path) {
+  let i = 1
+  const moveNext = () => {
+    if (i >= path.length) return
+    currentRoom = path[i]
+    const pos = roomPositions[currentRoom]
+    const orb = document.getElementById('player-orb')
+    orb.setAttribute('cx', pos.x)
+    orb.setAttribute('cy', pos.y)
+
+    // Update current room highlight
+    document.querySelectorAll('.room-rect').forEach(r => r.classList.remove('current'))
+    document.querySelector(`[data-room-id="${currentRoom}"] .room-rect`)?.classList.add('current')
+
+    i++
+    if (i < path.length) setTimeout(moveNext, 200)
+    else renderCompass()
+  }
+  moveNext()
+}
+
+function highlightPath(path) {
+  // Clear previous highlights
+  document.querySelectorAll('.connection-line').forEach(l => l.classList.remove('path-preview'))
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const from = path[i]
+    const to = path[i + 1]
+    const line = document.querySelector(`.connection-line[data-from="${from}"][data-to="${to}"], .connection-line[data-from="${to}"][data-to="${from}"]`)
+    if (line) line.classList.add('path-preview')
+  }
+}
+
+function handlePadlockClick(e, gate, from, dir) {
+  e.stopPropagation()
+  const padlock = e.target
+
+  if (gate.keyId && heldKeys.includes(gate.keyId)) {
+    // Unlock!
+    padlock.classList.add('unlocking')
+    dungeonGraph.updateGate(from, dir, { locked: false })
+    setTimeout(() => {
+      padlock.remove()
+      renderCompass()
+    }, 300)
+  } else {
+    // Shake
+    padlock.classList.add('shake')
+    setTimeout(() => padlock.classList.remove('shake'), 300)
+  }
+}
+
+function showBlockedFeedback(gate) {
+  const padlock = document.querySelector(`.padlock[data-gate-id="${gate.id}"]`)
+  if (padlock) {
+    padlock.classList.add('shake')
+    setTimeout(() => padlock.classList.remove('shake'), 300)
+  }
+}
+
+function renderCompass() {
+  const container = document.getElementById('compass-rose')
+  const exits = dungeonGraph.getExits(currentRoom)
+  const exitDirs = new Set(exits.map(e => e.direction))
+  const context = { inventory: heldKeys, discovered: discoveredPassages }
+
+  const layout = [
+    [null, 'NORTH', null],
+    ['WEST', 'center', 'EAST'],
+    [null, 'SOUTH', null],
+    ['UP', null, 'DOWN'],
+  ]
+
+  container.innerHTML = ''
+  layout.flat().forEach(dir => {
+    const btn = document.createElement('button')
+    btn.className = 'compass-btn'
+
+    if (dir === 'center') {
+      btn.classList.add('compass-center')
+      btn.textContent = '◆'
+      btn.disabled = true
+    } else if (dir === null) {
+      btn.style.visibility = 'hidden'
+    } else {
+      btn.textContent = dir.charAt(0)
+      const hasExit = exitDirs.has(dir)
+      btn.disabled = !hasExit
+
+      if (hasExit) {
+        const exit = exits.find(e => e.direction === dir)
+        const result = dungeonGraph.canTraverse(currentRoom, dir, context)
+        if (!result.allowed && exit?.gate?.locked) {
+          btn.classList.add('locked')
+        }
+        btn.onclick = () => {
+          if (result.allowed) {
+            const dest = dungeonGraph.getDestination(currentRoom, dir)
+            if (dest) handleRoomClick(dest)
+          } else if (exit?.gate) {
+            showBlockedFeedback(exit.gate)
+          }
+        }
+      }
+    }
+    container.appendChild(btn)
+  })
+}
+
+function renderKeyring() {
+  const container = document.getElementById('keyring')
+  container.innerHTML = ''
+
+  allKeys.forEach(key => {
+    const item = document.createElement('div')
+    item.className = 'key-item'
+    item.onclick = () => toggleKey(key.id)
+
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    icon.setAttribute('viewBox', '0 0 24 24')
+    icon.classList.add('key-icon')
+    icon.classList.add(heldKeys.includes(key.id) ? 'held' : 'not-held')
+    icon.innerHTML = `<path fill="${key.color}" d="M7 14a2 2 0 01-2-2 2 2 0 012-2 2 2 0 012 2 2 2 0 01-2 2m5.65-4A6 6 0 007 6a6 6 0 00-6 6 6 6 0 006 6 6 6 0 004.65-2.2L14 18l2-2 2 2 2-2 2-2-2-2-4.35-4z"/>`
+
+    const label = document.createElement('span')
+    label.className = 'key-label'
+    label.textContent = key.name
+
+    item.appendChild(icon)
+    item.appendChild(label)
+    container.appendChild(item)
+  })
+}
+
+function toggleKey(keyId) {
+  if (heldKeys.includes(keyId)) {
+    heldKeys = heldKeys.filter(k => k !== keyId)
+  } else {
+    heldKeys.push(keyId)
+  }
+  renderKeyring()
+  renderCompass()
+}
+
+function resetDungeon() {
+  currentRoom = 'guard-room'
+  heldKeys = ['brass']
+  discoveredPassages = []
+  // Reset gates
+  dungeonConnections.forEach(({ from, dir, gate }) => {
+    if (gate) {
+      try {
+        dungeonGraph.updateGate(from, dir, { locked: gate.locked, hidden: gate.hidden })
+      } catch (e) {}
+    }
+  })
+  renderDungeon()
+}
+
+function revealSecret() {
+  if (!discoveredPassages.includes('secret-passage')) {
+    discoveredPassages.push('secret-passage')
+    renderDungeon()
+  }
+}
+
+// Initialize Exhibit 1
+initDungeonGraph()
+renderDungeon()
+
+document.getElementById('dungeon-reset').onclick = resetDungeon
+document.getElementById('find-path-toggle').onchange = (e) => {
+  findPathMode = e.target.checked
+  document.querySelectorAll('.connection-line').forEach(l => l.classList.remove('path-preview'))
+}
+document.getElementById('reveal-secret').onclick = revealSecret
+
+// ============================================
+// EXHIBIT 2: GRAPH WORKSHOP
+// ============================================
+
+const workshopGraph = createSpatialGraph()
+let workshopNodes = {}
+let nextNodeLetter = 65 // 'A'
+let selectedNode = null
+let analysisActive = false
+let deleteMode = false
+let miniPlayerNode = null
+
+const workshopInitialGraph = {
+  nodes: [
+    { id: 'A', x: 100, y: 100 },
+    { id: 'B', x: 100, y: 250 },
+    { id: 'C', x: 280, y: 100 },
+    { id: 'D', x: 280, y: 250 },
+    { id: 'E', x: 450, y: 175 }, // Orphan
+    { id: 'F', x: 100, y: 350 }, // Dead end off B
+  ],
+  connections: [
+    { from: 'A', dir: Direction.SOUTH, to: 'B' },
+    { from: 'A', dir: Direction.EAST, to: 'C' },
+    { from: 'B', dir: Direction.EAST, to: 'D', gate: { id: 'gate-1', locked: true, keyId: 'key-1' } },
+    { from: 'C', dir: Direction.SOUTH, to: 'D' },
+    { from: 'B', dir: Direction.SOUTH, to: 'F' },
+  ],
+  zones: { 'A': 'zone-1', 'B': 'zone-1' }
+}
+
+function initWorkshopGraph() {
+  workshopInitialGraph.nodes.forEach(n => {
+    workshopGraph.createNode(n.id)
+    workshopNodes[n.id] = { x: n.x, y: n.y }
+  })
+  workshopInitialGraph.connections.forEach(c => {
+    workshopGraph.connect(c.from, c.dir, c.to, c.gate ? { gate: c.gate } : {})
+  })
+  Object.entries(workshopInitialGraph.zones).forEach(([nodeId, zone]) => {
+    workshopGraph.setZone(nodeId, zone)
+  })
+  nextNodeLetter = 71 // 'G'
+  miniPlayerNode = 'A'
+}
+
+function renderWorkshop() {
+  const container = document.getElementById('workshop-canvas')
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('viewBox', '0 0 600 400')
+
+  // Arrowhead marker
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+  const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker')
+  marker.id = 'arrowhead'
+  marker.setAttribute('markerWidth', '10')
+  marker.setAttribute('markerHeight', '7')
+  marker.setAttribute('refX', '9')
+  marker.setAttribute('refY', '3.5')
+  marker.setAttribute('orient', 'auto')
+  const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+  polygon.setAttribute('points', '0 0, 10 3.5, 0 7')
+  polygon.setAttribute('fill', '#30363d')
+  marker.appendChild(polygon)
+  defs.appendChild(marker)
+  svg.appendChild(defs)
+
+  const orphans = analysisActive ? workshopGraph.getOrphans() : []
+  const deadEnds = analysisActive ? workshopGraph.getDeadEnds() : []
+  const reachable = miniPlayerNode ? workshopGraph.getReachable(miniPlayerNode) : []
+
+  // Draw connections
+  workshopGraph.getAllNodes().forEach(nodeId => {
+    const exits = workshopGraph.getExits(nodeId)
+    exits.forEach(exit => {
+      const fromPos = workshopNodes[nodeId]
+      const toPos = workshopNodes[exit.target]
+      if (!fromPos || !toPos) return
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+      line.setAttribute('x1', fromPos.x)
+      line.setAttribute('y1', fromPos.y)
+      line.setAttribute('x2', toPos.x)
+      line.setAttribute('y2', toPos.y)
+      line.classList.add('workshop-connection')
+      if (exit.gate) line.classList.add('has-gate')
+      svg.appendChild(line)
+
+      // Gate indicator
+      if (exit.gate) {
+        const midX = (fromPos.x + toPos.x) / 2
+        const midY = (fromPos.y + toPos.y) / 2
+        const lock = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+        lock.setAttribute('x', midX)
+        lock.setAttribute('y', midY + 5)
+        lock.setAttribute('text-anchor', 'middle')
+        lock.setAttribute('font-size', '12')
+        lock.textContent = '🔒'
+        svg.appendChild(lock)
+      }
+    })
+  })
+
+  // Draw nodes
+  workshopGraph.getAllNodes().forEach(nodeId => {
+    const pos = workshopNodes[nodeId]
+    if (!pos) return
+
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    group.classList.add('workshop-node')
+    group.dataset.nodeId = nodeId
+
+    if (orphans.includes(nodeId)) group.classList.add('orphan')
+    if (deadEnds.includes(nodeId)) group.classList.add('dead-end')
+    if (selectedNode === nodeId) group.classList.add('selected')
+    if (miniPlayerNode && reachable.includes(nodeId)) group.classList.add('reachable')
+    if (miniPlayerNode && !reachable.includes(nodeId)) group.classList.add('unreachable')
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    circle.setAttribute('cx', pos.x)
+    circle.setAttribute('cy', pos.y)
+    circle.setAttribute('r', 25)
+
+    // Zone coloring
+    const zone = workshopGraph.getZone(nodeId)
+    if (zone) {
+      circle.style.stroke = zone === 'zone-1' ? '#1f6feb' : '#238636'
+      circle.style.strokeWidth = '3'
+    }
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    label.setAttribute('x', pos.x)
+    label.setAttribute('y', pos.y + 5)
+    label.textContent = nodeId
+
+    group.appendChild(circle)
+    group.appendChild(label)
+
+    group.onclick = (e) => {
+      e.stopPropagation()
+      if (deleteMode) {
+        workshopGraph.removeNode(nodeId)
+        delete workshopNodes[nodeId]
+        if (miniPlayerNode === nodeId) miniPlayerNode = workshopGraph.getAllNodes()[0] || null
+        renderWorkshop()
+      } else {
+        selectedNode = selectedNode === nodeId ? null : nodeId
+        renderWorkshop()
+      }
+    }
+
+    svg.appendChild(group)
+  })
+
+  // Mini player
+  if (miniPlayerNode && workshopNodes[miniPlayerNode]) {
+    const pos = workshopNodes[miniPlayerNode]
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    group.classList.add('mini-player')
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    circle.setAttribute('cx', pos.x)
+    circle.setAttribute('cy', pos.y - 35)
+    circle.setAttribute('r', 8)
+    group.appendChild(circle)
+
+    // Drag to move mini player
+    let dragging = false
+    group.onmousedown = (e) => {
+      e.stopPropagation()
+      dragging = true
+    }
+    svg.onmousemove = (e) => {
+      if (!dragging) return
+      const rect = svg.getBoundingClientRect()
+      const x = (e.clientX - rect.left) * (600 / rect.width)
+      const y = (e.clientY - rect.top) * (400 / rect.height)
+      // Find nearest node
+      let nearest = null
+      let minDist = Infinity
+      Object.entries(workshopNodes).forEach(([id, pos]) => {
+        const dist = Math.hypot(pos.x - x, pos.y - y)
+        if (dist < minDist) { minDist = dist; nearest = id }
+      })
+      if (nearest && minDist < 50) {
+        miniPlayerNode = nearest
+        renderWorkshop()
+      }
+    }
+    svg.onmouseup = () => { dragging = false }
+
+    svg.appendChild(group)
+  }
+
+  // Click canvas to add node
+  svg.onclick = (e) => {
+    if (deleteMode) return
+    const rect = svg.getBoundingClientRect()
+    const x = (e.clientX - rect.left) * (600 / rect.width)
+    const y = (e.clientY - rect.top) * (400 / rect.height)
+    addWorkshopNode(x, y)
+  }
+
+  container.innerHTML = ''
+  container.appendChild(svg)
+}
+
+function addWorkshopNode(x, y) {
+  const id = String.fromCharCode(nextNodeLetter++)
+  workshopGraph.createNode(id)
+  workshopNodes[id] = { x, y }
+  if (!miniPlayerNode) miniPlayerNode = id
+  renderWorkshop()
+}
+
+function loadWorkshopExample(name) {
+  // Clear current
+  workshopGraph.getAllNodes().forEach(id => workshopGraph.removeNode(id))
+  workshopNodes = {}
+  nextNodeLetter = 65
+  selectedNode = null
+  miniPlayerNode = null
+
+  const examples = {
+    minimal: {
+      nodes: [{ id: 'A', x: 150, y: 200 }, { id: 'B', x: 300, y: 200 }, { id: 'C', x: 450, y: 200 }],
+      connections: [{ from: 'A', dir: Direction.EAST, to: 'B' }, { from: 'B', dir: Direction.EAST, to: 'C' }]
+    },
+    disconnected: {
+      nodes: [
+        { id: 'A', x: 100, y: 150 }, { id: 'B', x: 200, y: 150 },
+        { id: 'C', x: 400, y: 150 }, { id: 'D', x: 500, y: 150 }
+      ],
+      connections: [{ from: 'A', dir: Direction.EAST, to: 'B' }, { from: 'C', dir: Direction.EAST, to: 'D' }]
+    },
+    empty: { nodes: [], connections: [] }
+  }
+
+  const ex = examples[name] || workshopInitialGraph
+  ex.nodes.forEach(n => {
+    workshopGraph.createNode(n.id)
+    workshopNodes[n.id] = { x: n.x, y: n.y }
+  })
+  ex.connections.forEach(c => {
+    workshopGraph.connect(c.from, c.dir, c.to, c.gate ? { gate: c.gate } : {})
+  })
+  nextNodeLetter = 65 + ex.nodes.length
+  miniPlayerNode = ex.nodes[0]?.id || null
+  renderWorkshop()
+}
+
+// Initialize Exhibit 2
+initWorkshopGraph()
+renderWorkshop()
+
+document.getElementById('workshop-add-node').onclick = () => addWorkshopNode(300, 200)
+document.getElementById('workshop-analyze').onclick = () => { analysisActive = true; renderWorkshop() }
+document.getElementById('workshop-clear-analysis').onclick = () => { analysisActive = false; renderWorkshop() }
+document.getElementById('workshop-examples').onchange = (e) => {
+  if (e.target.value) { loadWorkshopExample(e.target.value); e.target.value = '' }
+}
+document.getElementById('workshop-delete-mode').onclick = (e) => {
+  deleteMode = !deleteMode
+  e.target.classList.toggle('btn-danger', deleteMode)
+  e.target.classList.toggle('btn-secondary', !deleteMode)
+}
+
+// ============================================
+// EXHIBIT 3: PATHFINDING THEATER
+// ============================================
+
+const pfGraph = createSpatialGraph()
+let pfState = {
+  start: 'A',
+  end: 'F',
+  distances: {},
+  previous: {},
+  visited: new Set(),
+  queue: [],
+  finalPath: [],
+  running: false,
+  hasKey: false,
+  speed: 200
+}
+
+const pfNodePositions = {
+  'A': { x: 300, y: 40 },
+  'B': { x: 150, y: 120 },
+  'C': { x: 450, y: 120 },
+  'D': { x: 150, y: 220 },
+  'E': { x: 450, y: 220 },
+  'F': { x: 300, y: 300 },
+}
+
+const pfConnections = [
+  { from: 'A', to: 'B', cost: 1 },
+  { from: 'A', to: 'C', cost: 3 },
+  { from: 'B', to: 'D', cost: 2 },
+  { from: 'C', to: 'E', cost: 5 },
+  { from: 'D', to: 'F', cost: 1 },
+  { from: 'D', to: 'E', cost: 1, gate: { id: 'de-gate', locked: true, keyId: 'pf-key' } },
+  { from: 'E', to: 'F', cost: 1 },
+]
+
+function initPfGraph() {
+  Object.keys(pfNodePositions).forEach(id => pfGraph.createNode(id))
+  pfConnections.forEach(c => {
+    // Determine direction based on positions
+    const from = pfNodePositions[c.from]
+    const to = pfNodePositions[c.to]
+    let dir = Direction.SOUTH
+    if (to.x > from.x + 50) dir = Direction.EAST
+    else if (to.x < from.x - 50) dir = Direction.WEST
+    else if (to.y < from.y) dir = Direction.NORTH
+
+    pfGraph.connect(c.from, dir, c.to, { cost: c.cost, ...(c.gate ? { gate: c.gate } : {}) })
+  })
+  resetPfState()
+}
+
+function resetPfState() {
+  pfState.distances = { [pfState.start]: 0 }
+  pfState.previous = {}
+  pfState.visited = new Set()
+  pfState.queue = [{ node: pfState.start, cost: 0 }]
+  pfState.finalPath = []
+  pfState.running = false
+  Object.keys(pfNodePositions).forEach(id => {
+    if (id !== pfState.start) pfState.distances[id] = Infinity
+  })
+}
+
+function renderPathfinding() {
+  const container = document.getElementById('pathfinding-graph')
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('viewBox', '0 0 600 350')
+
+  // Draw connections
+  pfConnections.forEach(c => {
+    const from = pfNodePositions[c.from]
+    const to = pfNodePositions[c.to]
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+    line.setAttribute('x1', from.x)
+    line.setAttribute('y1', from.y)
+    line.setAttribute('x2', to.x)
+    line.setAttribute('y2', to.y)
+    line.classList.add('pf-connection')
+
+    if (c.gate) line.classList.add('locked')
+    if (pfState.finalPath.includes(c.from) && pfState.finalPath.includes(c.to)) {
+      const fi = pfState.finalPath.indexOf(c.from)
+      const ti = pfState.finalPath.indexOf(c.to)
+      if (Math.abs(fi - ti) === 1) line.classList.add('final-path')
+    }
+
+    svg.appendChild(line)
+
+    // Cost label
+    const midX = (from.x + to.x) / 2
+    const midY = (from.y + to.y) / 2
+    const offsetX = to.y === from.y ? 0 : (to.x > from.x ? 15 : -15)
+    const offsetY = to.x === from.x ? 0 : -10
+    const costLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    costLabel.setAttribute('x', midX + offsetX)
+    costLabel.setAttribute('y', midY + offsetY)
+    costLabel.classList.add('cost-label')
+    costLabel.textContent = c.cost
+    svg.appendChild(costLabel)
+
+    // Gate indicator
+    if (c.gate) {
+      const lock = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+      lock.setAttribute('x', midX)
+      lock.setAttribute('y', midY + 20)
+      lock.setAttribute('text-anchor', 'middle')
+      lock.setAttribute('font-size', '14')
+      lock.textContent = '🔒'
+      svg.appendChild(lock)
+    }
+  })
+
+  // Draw nodes
+  Object.entries(pfNodePositions).forEach(([id, pos]) => {
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    group.classList.add('pf-node')
+
+    if (id === pfState.start) group.classList.add('start')
+    if (id === pfState.end) group.classList.add('end')
+    if (pfState.visited.has(id)) group.classList.add('explored')
+    else if (pfState.queue.some(q => q.node === id)) group.classList.add('frontier')
+    else group.classList.add('unexplored')
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    circle.classList.add('node-bg')
+    circle.setAttribute('cx', pos.x)
+    circle.setAttribute('cy', pos.y)
+    circle.setAttribute('r', 28)
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    label.classList.add('node-label')
+    label.setAttribute('x', pos.x)
+    label.setAttribute('y', pos.y + 5)
+    label.textContent = id
+
+    const dist = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    dist.classList.add('distance-label')
+    dist.setAttribute('x', pos.x)
+    dist.setAttribute('y', pos.y + 18)
+    const d = pfState.distances[id]
+    dist.textContent = d === Infinity ? '∞' : d
+
+    group.appendChild(circle)
+    group.appendChild(label)
+    group.appendChild(dist)
+    svg.appendChild(group)
+  })
+
+  container.innerHTML = ''
+  container.appendChild(svg)
+  renderPfQueue()
+}
+
+function renderPfQueue() {
+  const container = document.getElementById('pf-queue-tokens')
+  container.innerHTML = ''
+  pfState.queue.sort((a, b) => a.cost - b.cost).forEach(item => {
+    const token = document.createElement('div')
+    token.className = 'queue-token'
+    token.textContent = `${item.node}:${item.cost}`
+    container.appendChild(token)
+  })
+}
+
+async function runPfStep() {
+  if (pfState.queue.length === 0 || pfState.visited.has(pfState.end)) return false
+
+  pfState.queue.sort((a, b) => a.cost - b.cost)
+  const current = pfState.queue.shift()
+
+  if (pfState.visited.has(current.node)) return true
+  pfState.visited.add(current.node)
+
+  if (current.node === pfState.end) {
+    // Reconstruct path
+    const path = []
+    let node = pfState.end
+    while (node) { path.unshift(node); node = pfState.previous[node] }
+    pfState.finalPath = path
+    renderPathfinding()
+    return false
+  }
+
+  const context = pfState.hasKey ? { inventory: ['pf-key'] } : {}
+  const exits = pfGraph.getExits(current.node)
+
+  for (const exit of exits) {
+    const result = pfGraph.canTraverse(current.node, exit.direction, context)
+    if (!result.allowed) continue
+
+    const newCost = current.cost + (exit.cost ?? 1)
+    if (pfState.distances[exit.target] === undefined || newCost < pfState.distances[exit.target]) {
+      pfState.distances[exit.target] = newCost
+      pfState.previous[exit.target] = current.node
+      if (!pfState.visited.has(exit.target)) {
+        pfState.queue.push({ node: exit.target, cost: newCost })
+      }
+    }
+  }
+
+  renderPathfinding()
+  return true
+}
+
+async function playPf() {
+  if (pfState.running) return
+  pfState.running = true
+  document.getElementById('pf-play').textContent = '⏸ Pause'
+
+  while (pfState.running && await runPfStep()) {
+    await new Promise(r => setTimeout(r, pfState.speed))
+  }
+
+  pfState.running = false
+  document.getElementById('pf-play').textContent = '▶ Play'
+}
+
+function randomizeCosts() {
+  pfConnections.forEach(c => {
+    c.cost = Math.floor(Math.random() * 5) + 1
+  })
+  // Update graph connections
+  pfGraph.getAllNodes().forEach(id => {
+    pfGraph.getExits(id).forEach(exit => {
+      const conn = pfConnections.find(c =>
+        (c.from === id && c.to === exit.target) ||
+        (c.to === id && c.from === exit.target)
+      )
+      if (conn) {
+        // Reconnect with new cost (simplified - just update internal)
+      }
+    })
+  })
+  resetPfState()
+  renderPathfinding()
+}
+
+// Initialize Exhibit 3
+initPfGraph()
+renderPathfinding()
+
+document.getElementById('pf-play').onclick = () => {
+  if (pfState.running) { pfState.running = false }
+  else playPf()
+}
+document.getElementById('pf-step').onclick = () => runPfStep()
+document.getElementById('pf-reset').onclick = () => { resetPfState(); renderPathfinding() }
+document.getElementById('pf-speed').oninput = (e) => { pfState.speed = 550 - parseInt(e.target.value) }
+document.getElementById('pf-has-key').onchange = (e) => {
+  pfState.hasKey = e.target.checked
+  resetPfState()
+  renderPathfinding()
+}
+document.getElementById('pf-randomize').onclick = randomizeCosts
+
+// ============================================
+// TEST RUNNER
+// ============================================
+
+const testRunner = {
+  tests: [],
+  results: [],
+  running: false,
+
+  register(name, fn) {
+    this.tests.push({ name, fn })
+  },
+
+  async run() {
+    if (this.running) return
+    this.running = true
+    this.results = []
+
+    const output = document.getElementById('test-output')
+    const progressFill = document.getElementById('progress-fill')
+    const progressText = document.getElementById('progress-text')
+    const summary = document.getElementById('test-summary')
+    const passedCount = document.getElementById('passed-count')
+    const failedCount = document.getElementById('failed-count')
+    const skippedCount = document.getElementById('skipped-count')
+    const runBtn = document.getElementById('run-tests')
+
+    runBtn.disabled = true
+    output.innerHTML = ''
+    summary.classList.add('hidden')
+    progressFill.style.width = '0%'
+    progressFill.className = 'test-progress-fill'
+
+    let passed = 0
+    let failed = 0
+
+    for (let i = 0; i < this.tests.length; i++) {
+      const test = this.tests[i]
+      const progress = ((i + 1) / this.tests.length) * 100
+
+      progressFill.style.width = `${progress}%`
+      progressText.textContent = `Running: ${test.name}`
+
+      try {
+        await test.fn()
+        passed++
+        this.results.push({ name: test.name, passed: true })
+        output.innerHTML += `
+          <div class="test-item">
+            <span class="test-icon pass">✓</span>
+            <span class="test-name">${escapeHtml(test.name)}</span>
+          </div>
+        `
+      } catch (e) {
+        failed++
+        this.results.push({ name: test.name, passed: false, error: e.message })
+        output.innerHTML += `
+          <div class="test-item">
+            <span class="test-icon fail">✗</span>
+            <div>
+              <div class="test-name">${escapeHtml(test.name)}</div>
+              <div class="test-error">${escapeHtml(e.message)}</div>
+            </div>
+          </div>
+        `
+      }
+
+      output.scrollTop = output.scrollHeight
+      await new Promise(r => setTimeout(r, 20))
+    }
+
+    progressFill.classList.add(failed === 0 ? 'success' : 'failure')
+    progressText.textContent = `Complete: ${passed}/${this.tests.length} passed`
+
+    passedCount.textContent = passed
+    failedCount.textContent = failed
+    skippedCount.textContent = 0
+    summary.classList.remove('hidden')
+
+    runBtn.disabled = false
+    this.running = false
+  }
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function expect(actual) {
+  return {
+    toBe(expected) {
+      if (actual !== expected) throw new Error(`Expected ${expected} but got ${actual}`)
+    },
+    toEqual(expected) {
+      if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+        throw new Error(`Expected ${JSON.stringify(expected)} but got ${JSON.stringify(actual)}`)
+      }
+    },
+    toBeDefined() {
+      if (actual === undefined) throw new Error('Expected value to be defined')
+    },
+    toBeNull() {
+      if (actual !== null) throw new Error(`Expected null but got ${actual}`)
+    },
+    toContain(item) {
+      if (!actual.includes(item)) throw new Error(`Expected array to contain ${item}`)
+    },
+    toHaveLength(len) {
+      if (actual.length !== len) throw new Error(`Expected length ${len} but got ${actual.length}`)
+    },
+    toThrow() {
+      let threw = false
+      try { actual() } catch (e) { threw = true }
+      if (!threw) throw new Error('Expected function to throw')
+    }
+  }
+}
+
+// Register tests
+testRunner.register('creates empty graph', () => {
+  const g = createSpatialGraph()
+  expect(g).toBeDefined()
+  expect(g.getAllNodes()).toEqual([])
+})
+
+testRunner.register('creates node with id', () => {
+  const g = createSpatialGraph()
+  g.createNode('test')
+  expect(g.hasNode('test')).toBe(true)
+})
+
+testRunner.register('creates node with metadata', () => {
+  const g = createSpatialGraph()
+  g.createNode('test', { name: 'Test Node', custom: 123 })
+  const node = g.getNode('test')
+  expect(node.metadata.name).toBe('Test Node')
+  expect(node.metadata.custom).toBe(123)
+})
+
+testRunner.register('throws on duplicate node id', () => {
+  const g = createSpatialGraph()
+  g.createNode('test')
+  expect(() => g.createNode('test')).toThrow()
+})
+
+testRunner.register('throws on empty node id', () => {
+  const g = createSpatialGraph()
+  expect(() => g.createNode('')).toThrow()
+})
+
+testRunner.register('removes node', () => {
+  const g = createSpatialGraph()
+  g.createNode('test')
+  g.removeNode('test')
+  expect(g.hasNode('test')).toBe(false)
+})
+
+testRunner.register('connects nodes bidirectionally', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b')
+  expect(g.getConnection('a', Direction.NORTH).target).toBe('b')
+  expect(g.getConnection('b', Direction.SOUTH).target).toBe('a')
+})
+
+testRunner.register('connects nodes one-way', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b', { bidirectional: false })
+  expect(g.getConnection('a', Direction.NORTH).target).toBe('b')
+  expect(g.getConnection('b', Direction.SOUTH)).toBeNull()
+})
+
+testRunner.register('disconnects nodes', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b')
+  g.disconnect('a', Direction.NORTH)
+  expect(g.getConnection('a', Direction.NORTH)).toBeNull()
+})
+
+testRunner.register('gets exits from node', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.createNode('c')
+  g.connect('a', Direction.NORTH, 'b')
+  g.connect('a', Direction.EAST, 'c')
+  const exits = g.getExits('a')
+  expect(exits).toHaveLength(2)
+})
+
+testRunner.register('sets gate on connection', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b')
+  g.setGate('a', Direction.NORTH, { id: 'door', locked: true })
+  const gate = g.getGate('a', Direction.NORTH)
+  expect(gate.id).toBe('door')
+  expect(gate.locked).toBe(true)
+})
+
+testRunner.register('updates gate', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b')
+  g.setGate('a', Direction.NORTH, { id: 'door', locked: true })
+  g.updateGate('a', Direction.NORTH, { locked: false })
+  expect(g.getGate('a', Direction.NORTH).locked).toBe(false)
+})
+
+testRunner.register('removes gate', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b')
+  g.setGate('a', Direction.NORTH, { id: 'door', locked: true })
+  g.removeGate('a', Direction.NORTH)
+  expect(g.getGate('a', Direction.NORTH)).toBeNull()
+})
+
+testRunner.register('canTraverse returns true for open connection', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b')
+  const result = g.canTraverse('a', Direction.NORTH)
+  expect(result.allowed).toBe(true)
+})
+
+testRunner.register('canTraverse returns false for locked gate', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b', { gate: { id: 'door', locked: true, keyId: 'key' } })
+  const result = g.canTraverse('a', Direction.NORTH)
+  expect(result.allowed).toBe(false)
+})
+
+testRunner.register('canTraverse allows with key', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b', { gate: { id: 'door', locked: true, keyId: 'key' } })
+  const result = g.canTraverse('a', Direction.NORTH, { inventory: ['key'] })
+  expect(result.allowed).toBe(true)
+})
+
+testRunner.register('findPath returns path', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.createNode('c')
+  g.connect('a', Direction.NORTH, 'b')
+  g.connect('b', Direction.NORTH, 'c')
+  const path = g.findPath('a', 'c')
+  expect(path).toEqual(['a', 'b', 'c'])
+})
+
+testRunner.register('findPath returns null when blocked', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b', { gate: { id: 'door', locked: true } })
+  const path = g.findPath('a', 'b')
+  expect(path).toBeNull()
+})
+
+testRunner.register('findPath respects cost', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.createNode('c')
+  g.connect('a', Direction.NORTH, 'b', { cost: 10 })
+  g.connect('a', Direction.EAST, 'c', { cost: 1 })
+  g.connect('c', Direction.NORTH, 'b', { cost: 1 })
+  const path = g.findPath('a', 'b')
+  expect(path).toEqual(['a', 'c', 'b'])
+})
+
+testRunner.register('getDistance returns cost', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b', { cost: 5 })
+  expect(g.getDistance('a', 'b')).toBe(5)
+})
+
+testRunner.register('getDistance returns Infinity when unreachable', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  expect(g.getDistance('a', 'b')).toBe(Infinity)
+})
+
+testRunner.register('canReach returns true for connected', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b')
+  expect(g.canReach('a', 'b')).toBe(true)
+})
+
+testRunner.register('canReach returns false for disconnected', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  expect(g.canReach('a', 'b')).toBe(false)
+})
+
+testRunner.register('getReachable returns all reachable nodes', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.createNode('c')
+  g.createNode('d')
+  g.connect('a', Direction.NORTH, 'b')
+  g.connect('b', Direction.NORTH, 'c')
+  const reachable = g.getReachable('a')
+  expect(reachable).toContain('a')
+  expect(reachable).toContain('b')
+  expect(reachable).toContain('c')
+  expect(reachable).toHaveLength(3)
+})
+
+testRunner.register('setZone assigns zone to node', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.setZone('a', 'zone-1')
+  expect(g.getZone('a')).toBe('zone-1')
+})
+
+testRunner.register('getNodesInZone returns zone nodes', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.createNode('c')
+  g.setZone('a', 'zone-1')
+  g.setZone('b', 'zone-1')
+  const nodes = g.getNodesInZone('zone-1')
+  expect(nodes).toContain('a')
+  expect(nodes).toContain('b')
+  expect(nodes).toHaveLength(2)
+})
+
+testRunner.register('getOrphans returns disconnected nodes', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.createNode('orphan')
+  g.connect('a', Direction.NORTH, 'b')
+  const orphans = g.getOrphans()
+  expect(orphans).toContain('orphan')
+  expect(orphans).toHaveLength(1)
+})
+
+testRunner.register('getDeadEnds returns single-exit nodes', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.createNode('c')
+  g.connect('a', Direction.NORTH, 'b')
+  g.connect('b', Direction.NORTH, 'c')
+  const deadEnds = g.getDeadEnds()
+  expect(deadEnds).toContain('a')
+  expect(deadEnds).toContain('c')
+})
+
+testRunner.register('getSubgraphs returns connected groups', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.createNode('c')
+  g.createNode('d')
+  g.connect('a', Direction.NORTH, 'b')
+  g.connect('c', Direction.NORTH, 'd')
+  const subgraphs = g.getSubgraphs()
+  expect(subgraphs).toHaveLength(2)
+})
+
+testRunner.register('validate returns valid for good graph', () => {
+  const g = createSpatialGraph()
+  g.createNode('a')
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b')
+  const result = g.validate()
+  expect(result.valid).toBe(true)
+})
+
+testRunner.register('serialize and deserialize roundtrip', () => {
+  const g = createSpatialGraph()
+  g.createNode('a', { name: 'Node A' })
+  g.createNode('b')
+  g.connect('a', Direction.NORTH, 'b', { gate: { id: 'door', locked: true } })
+  const data = g.serialize()
+
+  const g2 = createSpatialGraph()
+  g2.deserialize(data)
+  expect(g2.hasNode('a')).toBe(true)
+  expect(g2.hasNode('b')).toBe(true)
+  expect(g2.getGate('a', Direction.NORTH).locked).toBe(true)
+})
+
+testRunner.register('Direction.opposite returns correct opposite', () => {
+  expect(Direction.opposite('NORTH')).toBe('SOUTH')
+  expect(Direction.opposite('EAST')).toBe('WEST')
+  expect(Direction.opposite('UP')).toBe('DOWN')
+})
+
+testRunner.register('Direction.parse parses abbreviations', () => {
+  expect(Direction.parse('n')).toBe('NORTH')
+  expect(Direction.parse('se')).toBe('SOUTHEAST')
+  expect(Direction.parse('u')).toBe('UP')
+})
+
+testRunner.register('on() fires events', () => {
+  const g = createSpatialGraph()
+  let fired = false
+  g.on('nodeCreated', () => { fired = true })
+  g.createNode('a')
+  expect(fired).toBe(true)
+})
+
+testRunner.register('unsubscribe stops events', () => {
+  const g = createSpatialGraph()
+  let count = 0
+  const unsub = g.on('nodeCreated', () => { count++ })
+  g.createNode('a')
+  unsub()
+  g.createNode('b')
+  expect(count).toBe(1)
+})
+
+// Fuzz test
+const fuzzTests = [{
+  name: 'Fuzz: random operations',
+  fn: async () => {
+    const g = createSpatialGraph()
+    const nodes = []
+    for (let i = 0; i < 50; i++) {
+      const id = `node-${i}`
+      g.createNode(id)
+      nodes.push(id)
+    }
+    // Random connections
+    for (let i = 0; i < 100; i++) {
+      const from = nodes[Math.floor(Math.random() * nodes.length)]
+      const to = nodes[Math.floor(Math.random() * nodes.length)]
+      if (from !== to) {
+        try {
+          const dirs = [Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST]
+          g.connect(from, dirs[Math.floor(Math.random() * 4)], to)
+        } catch (e) {}
+      }
+    }
+    const result = g.validate()
+    expect(result.valid).toBe(true)
+  }
+}]
+
+document.getElementById('run-tests').addEventListener('click', () => testRunner.run())
+document.getElementById('run-fuzz').addEventListener('click', async () => {
+  const output = document.getElementById('test-output')
+  const progressFill = document.getElementById('progress-fill')
+  const progressText = document.getElementById('progress-text')
+
+  output.innerHTML = ''
+  progressFill.style.width = '0%'
+  progressText.textContent = 'Running fuzz tests...'
+
+  for (const test of fuzzTests) {
+    try {
+      await test.fn()
+      output.innerHTML += `<div class="test-item"><span class="test-icon pass">✓</span><span class="test-name">${test.name}</span></div>`
+    } catch (e) {
+      output.innerHTML += `<div class="test-item"><span class="test-icon fail">✗</span><div><div class="test-name">${test.name}</div><div class="test-error">${e.message}</div></div></div>`
+    }
+  }
+
+  progressFill.style.width = '100%'
+  progressFill.classList.add('success')
+  progressText.textContent = 'Fuzz tests complete'
+})
+  </script>
+</body>
+</html>
