@@ -341,3 +341,156 @@ describe('Connection Management', () => {
     })
   })
 })
+
+describe('Security: Prototype Pollution Prevention', () => {
+  let graph: SpatialGraph
+
+  beforeEach(() => {
+    graph = createSpatialGraph()
+  })
+
+  describe('createNode() - prototype pollution prevention', () => {
+    it('rejects __proto__ in metadata', () => {
+      const malicious = { __proto__: { polluted: true } } as Record<string, unknown>
+      graph.createNode('node1', malicious)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+    })
+
+    it('rejects constructor in metadata', () => {
+      const malicious = { constructor: { prototype: { polluted: true } } } as Record<
+        string,
+        unknown
+      >
+      graph.createNode('node1', malicious)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+    })
+
+    it('rejects prototype key in metadata', () => {
+      const malicious = { prototype: { polluted: true } } as Record<string, unknown>
+      graph.createNode('node1', malicious)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+    })
+
+    it('still accepts normal metadata', () => {
+      graph.createNode('node1', { name: 'Test', custom: 'value' })
+      const node = graph.getNode('node1')
+      expect(node?.metadata.name).toBe('Test')
+      expect(node?.metadata.custom).toBe('value')
+    })
+
+    it('handles JSON-parsed malicious input', () => {
+      const malicious = JSON.parse('{"__proto__": {"polluted": true}}')
+      graph.createNode('node1', malicious)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+    })
+  })
+
+  describe('updateGate() - prototype pollution prevention', () => {
+    beforeEach(() => {
+      graph.createNode('node1')
+      graph.createNode('node2')
+      graph.connect('node1', Direction.NORTH, 'node2', {
+        gate: { id: 'gate1', locked: false },
+      })
+    })
+
+    it('rejects __proto__ in gate updates', () => {
+      const malicious = { __proto__: { polluted: true } } as Record<string, unknown>
+      graph.updateGate('node1', Direction.NORTH, malicious)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+    })
+
+    it('rejects constructor in gate updates', () => {
+      const malicious = { constructor: { prototype: { polluted: true } } } as Record<
+        string,
+        unknown
+      >
+      graph.updateGate('node1', Direction.NORTH, malicious)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+    })
+
+    it('rejects prototype key in gate updates', () => {
+      const malicious = { prototype: { polluted: true } } as Record<string, unknown>
+      graph.updateGate('node1', Direction.NORTH, malicious)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+    })
+
+    it('still accepts normal gate updates', () => {
+      graph.updateGate('node1', Direction.NORTH, { locked: true, keyId: 'key1' })
+      const gate = graph.getGate('node1', Direction.NORTH)
+      expect(gate?.locked).toBe(true)
+      expect(gate?.keyId).toBe('key1')
+    })
+  })
+
+  describe('deserialize() - prototype pollution prevention', () => {
+    it('rejects __proto__ in deserialized node metadata', () => {
+      const maliciousData = {
+        nodes: {
+          node1: {
+            id: 'node1',
+            layer: 1,
+            metadata: {
+              __proto__: { polluted: true },
+              name: 'Test',
+            },
+          },
+        },
+        connections: {},
+      }
+      graph.deserialize(maliciousData)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      // Verify normal metadata still works
+      const node = graph.getNode('node1')
+      expect(node?.metadata.name).toBe('Test')
+    })
+
+    it('rejects constructor in deserialized metadata', () => {
+      const maliciousData = {
+        nodes: {
+          node1: {
+            id: 'node1',
+            layer: 1,
+            metadata: {
+              constructor: { prototype: { polluted: true } },
+            },
+          },
+        },
+        connections: {},
+      }
+      graph.deserialize(maliciousData)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+    })
+
+    it('handles JSON.parse of malicious serialized data', () => {
+      const maliciousJSON = `{
+        "nodes": {
+          "node1": {
+            "id": "node1",
+            "layer": 1,
+            "metadata": {
+              "__proto__": {"polluted": true}
+            }
+          }
+        },
+        "connections": {}
+      }`
+      const maliciousData = JSON.parse(maliciousJSON)
+      graph.deserialize(maliciousData)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+    })
+
+    it('successfully deserializes safe data', () => {
+      graph.createNode('node1', { name: 'Test' })
+      graph.createNode('node2')
+      graph.connect('node1', Direction.NORTH, 'node2')
+      const serialized = graph.serialize()
+
+      const graph2 = createSpatialGraph()
+      graph2.deserialize(serialized)
+      expect(graph2.hasNode('node1')).toBe(true)
+      expect(graph2.hasNode('node2')).toBe(true)
+      expect(graph2.getNode('node1')?.metadata.name).toBe('Test')
+    })
+  })
+})
