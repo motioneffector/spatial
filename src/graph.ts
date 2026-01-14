@@ -105,6 +105,20 @@ export function createSpatialGraph(options?: SpatialGraphOptions): SpatialGraph 
     return { allowed: true }
   }
 
+  // Forbidden keys for prototype pollution prevention
+  const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
+  // Helper to safely copy object properties
+  const safeCopy = (source: Record<string, unknown>): Record<string, unknown> => {
+    const target: Record<string, unknown> = {}
+    for (const key of Object.keys(source)) {
+      if (FORBIDDEN_KEYS.has(key)) continue
+      if (!Object.hasOwn(source, key)) continue
+      target[key] = source[key]
+    }
+    return target
+  }
+
   // Node management
   const createNode = (id: string, opts?: CreateNodeOptions): void => {
     if (!id || id.length === 0) {
@@ -115,7 +129,7 @@ export function createSpatialGraph(options?: SpatialGraphOptions): SpatialGraph 
     }
 
     const layer = opts?.layer ?? 1
-    const metadata: Record<string, unknown> = { ...opts }
+    const metadata: Record<string, unknown> = safeCopy({ ...opts })
     delete metadata.tiles
     delete metadata.layer
 
@@ -354,7 +368,12 @@ export function createSpatialGraph(options?: SpatialGraphOptions): SpatialGraph 
       throw new ValidationError(`Gate on connection from "${from}" in direction "${direction}" does not exist`)
     }
 
-    Object.assign(connection.gate, updates)
+    // Safely merge updates, filtering forbidden keys
+    for (const key of Object.keys(updates)) {
+      if (FORBIDDEN_KEYS.has(key)) continue
+      if (!Object.hasOwn(updates, key)) continue
+      ;(connection.gate as Record<string, unknown>)[key] = (updates as Record<string, unknown>)[key]
+    }
     emit('gateUpdated', from, direction, connection.gate)
   }
 
@@ -829,7 +848,7 @@ export function createSpatialGraph(options?: SpatialGraphOptions): SpatialGraph 
     }
 
     Object.entries(data.nodes).forEach(([id, nodeData]) => {
-      const opts: CreateNodeOptions = { ...nodeData.metadata, layer: nodeData.layer }
+      const opts: CreateNodeOptions = { ...safeCopy(nodeData.metadata), layer: nodeData.layer }
       if (nodeData.tiles) opts.tiles = nodeData.tiles
       createNode(id, opts)
       if (nodeData.zone) {
