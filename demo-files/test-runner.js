@@ -87,15 +87,7 @@ export const testRunner = {
     let failed = 0
     let currentStep = 0
 
-    // Run demo automation if enabled
-    if (runDemo) {
-      await this.runDemoAutomation(progressFill, progressText, output, () => {
-        currentStep++
-        return (currentStep / totalSteps) * 100
-      })
-    }
-
-    // Run tests
+    // Run tests FIRST
     for (let i = 0; i < this.tests.length; i++) {
       const test = this.tests[i]
       currentStep++
@@ -132,13 +124,25 @@ export const testRunner = {
       await new Promise(r => setTimeout(r, 20))
     }
 
+    // Show test results
     progressFill.classList.add(failed === 0 ? 'success' : 'failure')
-    progressText.textContent = `Complete: ${passed}/${this.tests.length} passed`
+    progressText.textContent = `Tests: ${passed}/${this.tests.length} passed`
 
     passedCount.textContent = passed
     failedCount.textContent = failed
     skippedCount.textContent = 0
     summary.classList.remove('hidden')
+
+    // Run demo automation AFTER tests complete
+    if (runDemo) {
+      await new Promise(r => setTimeout(r, 500))
+      progressFill.classList.remove('success', 'failure')
+      await this.runDemoAutomation(progressFill, progressText, output, () => {
+        currentStep++
+        return (currentStep / totalSteps) * 100
+      })
+      progressText.textContent = `Complete: ${passed}/${this.tests.length} passed, demos finished`
+    }
 
     runBtn.disabled = false
     this.running = false
