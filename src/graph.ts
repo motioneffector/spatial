@@ -372,7 +372,7 @@ export function createSpatialGraph(options?: SpatialGraphOptions): SpatialGraph 
     for (const key of Object.keys(updates)) {
       if (FORBIDDEN_KEYS.has(key)) continue
       if (!Object.hasOwn(updates, key)) continue
-      ;(connection.gate as Record<string, unknown>)[key] = (updates as Record<string, unknown>)[key]
+      ;(connection.gate as unknown as Record<string, unknown>)[key] = (updates as Record<string, unknown>)[key]
     }
     emit('gateUpdated', from, direction, connection.gate)
   }
