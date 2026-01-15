@@ -4,35 +4,56 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>@motioneffector/spatial - Demo</title>
-  <link rel="stylesheet" href="demo-files/styles.css">
+  <link rel="stylesheet" href="demo-files/demo.css">
 </head>
 <body>
-  <!-- Demo status banner (shows during automated demo) -->
-  <div class="demo-status" id="demo-status"></div>
-
   <div class="page">
     <header class="header">
       <h1 class="header-title">@motioneffector/spatial</h1>
       <p class="header-description">Directional graph for room-based spatial navigation</p>
       <nav class="header-links">
-        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link" target="_blank">
-          📦 npm
-        </a>
-        <a href="https://github.com/motioneffector/spatial" class="header-link" target="_blank">
-          💻 GitHub
-        </a>
-        <a href="https://github.com/motioneffector/spatial/wiki" class="header-link" target="_blank">
-          📖 Manual
-        </a>
-        <button class="btn btn-secondary btn-small" id="page-reset" style="margin-left: auto;">
-          🔄 Reset Page
-        </button>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link" target="_blank">📦 npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link" target="_blank">💻 GitHub</a>
+        <a href="https://github.com/motioneffector/spatial/wiki" class="header-link" target="_blank">📖 Manual</a>
       </nav>
     </header>
 
-    <main class="exhibits">
+    <main>
+      <!-- Test Runner (FIRST, before all exhibits) -->
+      <section class="test-runner" id="test-runner">
+        <div class="test-runner-header">
+          <h2 class="test-runner-title">Test Runner</h2>
+        </div>
+        <div class="test-runner-content">
+          <!-- Control bar: progress bar + buttons, above output console -->
+          <div class="test-control-bar">
+            <div class="test-progress">
+              <div class="test-progress-bar">
+                <div class="test-progress-fill" id="progress-fill"></div>
+              </div>
+              <div class="test-progress-text" id="progress-text">Ready</div>
+            </div>
+            <div class="test-runner-actions">
+              <button class="btn btn-primary" id="run-all-tests">
+                <span class="btn-icon">▶</span>
+                <span>Run All Tests</span>
+              </button>
+              <button class="btn btn-secondary" id="reset-page">
+                <span class="btn-icon">↻</span>
+                <span>Reset Page</span>
+              </button>
+            </div>
+          </div>
+          <!-- Output console below the control bar -->
+          <div class="test-output" id="test-output">
+            <div class="test-output-placeholder">Click "Run All Tests" to execute the test suite and see a live demonstration</div>
+          </div>
+          <div class="test-summary hidden" id="test-summary"></div>
+        </div>
+      </section>
+
       <!-- Exhibit 1: Dungeon Explorer -->
-      <section class="exhibit">
+      <section class="exhibit" id="exhibit-dungeon">
         <div class="exhibit-header">
           <h2 class="exhibit-title">Dungeon Explorer</h2>
           <p class="exhibit-description">Navigate through a connected graph with locked doors, keys, and pathfinding. Click rooms to move, collect keys to unlock doors.</p>
@@ -61,7 +82,7 @@
       </section>
 
       <!-- Exhibit 2: Graph Workshop -->
-      <section class="exhibit">
+      <section class="exhibit" id="exhibit-workshop">
         <div class="exhibit-header">
           <h2 class="exhibit-title">Graph Workshop</h2>
           <p class="exhibit-description">Modify, analyze, and build spatial graphs interactively. Click "Analyze" to see orphans and dead-ends, drag the mini-player to test reachability.</p>
@@ -88,7 +109,7 @@
       </section>
 
       <!-- Exhibit 3: Pathfinding Theater -->
-      <section class="exhibit">
+      <section class="exhibit" id="exhibit-pathfinding">
         <div class="exhibit-header">
           <h2 class="exhibit-title">Pathfinding Theater</h2>
           <p class="exhibit-description">Watch Dijkstra's algorithm find the shortest path step by step. The "obvious" short path has high costs - watch the algorithm find the better route.</p>
@@ -119,54 +140,17 @@
         </div>
       </section>
     </main>
-
-    <footer class="test-runner">
-      <div class="test-runner-header">
-        <h2 class="test-runner-title">Test Suite</h2>
-        <div class="test-runner-actions">
-          <button class="btn btn-primary" id="run-tests">Run All Tests</button>
-          <button class="btn btn-secondary" id="run-fuzz">Run Fuzz Tests</button>
-        </div>
-      </div>
-      <div class="test-runner-content">
-        <div class="test-progress">
-          <div class="test-progress-bar">
-            <div class="test-progress-fill" id="progress-fill"></div>
-          </div>
-          <div class="test-progress-text" id="progress-text">Click "Run All Tests" to demo all exhibits and execute the test suite</div>
-        </div>
-        <div class="test-output" id="test-output">
-          <div class="test-output-empty">Click "Run All Tests" to automatically demonstrate all exhibits and then run the full test suite</div>
-        </div>
-        <div class="test-summary hidden" id="test-summary">
-          <div class="test-summary-item passed">
-            <span>✓</span>
-            <span id="passed-count">0</span> passed
-          </div>
-          <div class="test-summary-item failed">
-            <span>✗</span>
-            <span id="failed-count">0</span> failed
-          </div>
-          <div class="test-summary-item skipped">
-            <span>○</span>
-            <span id="skipped-count">0</span> skipped
-          </div>
-        </div>
-      </div>
-    </footer>
   </div>
 
+  <!-- Library (from dist) -->
   <script type="module">
-    import { initDungeon } from './demo-files/dungeon.js'
-    import { initWorkshop } from './demo-files/workshop.js'
-    import { initPathfinding } from './demo-files/pathfinding.js'
-    import { initTestRunner } from './demo-files/test-runner.js'
-
-    // Initialize all exhibits
-    initDungeon()
-    initWorkshop()
-    initPathfinding()
-    initTestRunner()
+    import * as Library from './dist/index.js'
+    window.Library = Library
   </script>
+
+  <!-- Demo scripts (order matters) -->
+  <script src="demo-files/test-runner.js"></script>
+  <script src="demo-files/demo.js"></script>
+  <script src="demo-files/tests.js"></script>
 </body>
 </html>
