@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Directions - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Custom Directions</h1>
+<p>Define game-specific movement types beyond the built-in compass directions. Portals, teleporters, climbing ropes, magic doors—any special navigation that doesn&#39;t fit NORTH/SOUTH/EAST/WEST.</p>
+<h2>Prerequisites</h2>
+<p>Before starting, you should:</p>
+<ul>
+<li><a href="concept-directions.html">Understand directions</a></li>
+<li><a href="concept-nodes-and-connections.html">Understand connections</a></li>
+</ul>
+<h2>Overview</h2>
+<p>We&#39;ll create custom directions by:</p>
+<ol>
+<li>Registering a new direction with its opposite</li>
+<li>Using the custom direction in connections</li>
+<li>Handling different opposite relationships</li>
+</ol>
+<h2>Step 1: Register a Custom Direction</h2>
+<p>Use <code>registerDirection()</code> to create a new direction with its opposite mapping.</p>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+// Register a portal direction (self-opposite)
+graph.registerDirection(&#39;PORTAL&#39;, { opposite: &#39;PORTAL&#39; })
+</code></pre>
+<p>The <code>opposite</code> parameter defines what direction the reverse connection uses. For a portal, entering from either side uses the same direction.</p>
+<h2>Step 2: Use in Connections</h2>
+<p>Use the custom direction like any built-in direction.</p>
+<pre><code class="language-typescript">graph.createNode(&#39;shrine&#39;)
+graph.createNode(&#39;mirror-shrine&#39;)
+
+// Connect via portal (bidirectional by default)
+graph.connect(&#39;shrine&#39;, &#39;PORTAL&#39; as any, &#39;mirror-shrine&#39;)
+
+// Check the connection
+const dest = graph.getDestination(&#39;shrine&#39;, &#39;PORTAL&#39; as any)
+console.log(dest)  // &#39;mirror-shrine&#39;
+
+// Reverse also works (because opposite is &#39;PORTAL&#39;)
+const reverse = graph.getDestination(&#39;mirror-shrine&#39;, &#39;PORTAL&#39; as any)
+console.log(reverse)  // &#39;shrine&#39;
+</code></pre>
+<p>Note: TypeScript requires <code>as any</code> for custom directions since they&#39;re not in the built-in Direction type.</p>
+<h2>Step 3: Handle Different Opposites</h2>
+<p>Custom directions can have three types of opposite relationships:</p>
+<pre><code class="language-typescript">// Self-opposite: same direction both ways
+graph.registerDirection(&#39;PORTAL&#39;, { opposite: &#39;PORTAL&#39; })
+
+// Paired opposites: ENTER and EXIT are distinct
+graph.registerDirection(&#39;ENTER&#39;, { opposite: &#39;EXIT&#39; })
+// This also registers EXIT → ENTER automatically
+
+// No opposite: one-way only
+graph.registerDirection(&#39;WARP&#39;, { opposite: null })
+</code></pre>
+<h2>Complete Example</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+// === REGISTER CUSTOM DIRECTIONS ===
+
+// Portal: magical doorway, works both ways
+graph.registerDirection(&#39;PORTAL&#39;, { opposite: &#39;PORTAL&#39; })
+
+// Climb/Descend: for ropes and ladders
+graph.registerDirection(&#39;CLIMB&#39;, { opposite: &#39;DESCEND&#39; })
+
+// Warp: one-way teleport trap
+graph.registerDirection(&#39;WARP&#39;, { opposite: null })
+
+// === CREATE NODES ===
+graph.createNode(&#39;mage-tower&#39;)
+graph.createNode(&#39;shadow-realm&#39;)
+graph.createNode(&#39;cliff-base&#39;)
+graph.createNode(&#39;cliff-top&#39;)
+graph.createNode(&#39;trap-room&#39;)
+graph.createNode(&#39;dungeon-start&#39;)
+
+// === PORTAL CONNECTION ===
+// Bidirectional magical portal
+graph.connect(&#39;mage-tower&#39;, &#39;PORTAL&#39; as any, &#39;shadow-realm&#39;)
+
+const portalDest = graph.getDestination(&#39;mage-tower&#39;, &#39;PORTAL&#39; as any)
+console.log(&#39;Portal leads to:&#39;, portalDest)  // &#39;shadow-realm&#39;
+
+// === CLIMB/DESCEND CONNECTION ===
+// Rope climbing - bidirectional with different names
+graph.connect(&#39;cliff-base&#39;, &#39;CLIMB&#39; as any, &#39;cliff-top&#39;)
+
+console.log(graph.getDestination(&#39;cliff-base&#39;, &#39;CLIMB&#39; as any))    // &#39;cliff-top&#39;
+console.log(graph.getDestination(&#39;cliff-top&#39;, &#39;DESCEND&#39; as any))  // &#39;cliff-base&#39;
+
+// === ONE-WAY WARP ===
+// Trap that teleports player with no return
+graph.connect(&#39;trap-room&#39;, &#39;WARP&#39; as any, &#39;dungeon-start&#39;, {
+  bidirectional: false
+})
+
+console.log(graph.getDestination(&#39;trap-room&#39;, &#39;WARP&#39; as any))     // &#39;dungeon-start&#39;
+console.log(graph.getDestination(&#39;dungeon-start&#39;, &#39;WARP&#39; as any)) // null (no reverse)
+
+// === PATHFINDING WORKS ===
+const path = graph.findPath(&#39;cliff-base&#39;, &#39;cliff-top&#39;)
+console.log(&#39;Path up cliff:&#39;, path)  // [&#39;cliff-base&#39;, &#39;cliff-top&#39;]
+</code></pre>
+<h2>Variations</h2>
+<h3>Ladder Direction</h3>
+<p>Vertical movement with custom names.</p>
+<pre><code class="language-typescript">graph.registerDirection(&#39;CLIMB_UP&#39;, { opposite: &#39;CLIMB_DOWN&#39; })
+
+graph.connect(&#39;basement&#39;, &#39;CLIMB_UP&#39; as any, &#39;attic&#39;)
+// Player types &quot;climb up&quot; → goes to attic
+// Player types &quot;climb down&quot; → returns to basement
+</code></pre>
+<h3>Vehicle Entry</h3>
+<p>Enter/exit vehicles or mounts.</p>
+<pre><code class="language-typescript">graph.registerDirection(&#39;BOARD&#39;, { opposite: &#39;DISEMBARK&#39; })
+
+graph.createNode(&#39;dock&#39;)
+graph.createNode(&#39;ship-deck&#39;)
+graph.connect(&#39;dock&#39;, &#39;BOARD&#39; as any, &#39;ship-deck&#39;)
+</code></pre>
+<h3>Conditional Portals</h3>
+<p>Combine custom directions with gates.</p>
+<pre><code class="language-typescript">graph.registerDirection(&#39;PORTAL&#39;, { opposite: &#39;PORTAL&#39; })
+graph.connect(&#39;ancient-circle&#39;, &#39;PORTAL&#39; as any, &#39;demon-realm&#39;)
+
+// Only works if player has the crystal
+graph.setGate(&#39;ancient-circle&#39;, &#39;PORTAL&#39; as any, {
+  id: &#39;portal-seal&#39;,
+  locked: true,
+  keyId: &#39;void-crystal&#39;
+})
+</code></pre>
+<h2>Troubleshooting</h2>
+<h3>TypeScript errors with custom directions</h3>
+<p><strong>Symptom:</strong> TypeScript complains about custom direction string.</p>
+<p><strong>Cause:</strong> Custom directions aren&#39;t in the <code>Direction</code> type.</p>
+<p><strong>Solution:</strong> Use <code>as any</code> type assertion:</p>
+<pre><code class="language-typescript">graph.connect(&#39;a&#39;, &#39;CUSTOM&#39; as any, &#39;b&#39;)
+</code></pre>
+<p>Or create a typed constant:</p>
+<pre><code class="language-typescript">const PORTAL = &#39;PORTAL&#39; as const
+graph.registerDirection(PORTAL, { opposite: PORTAL })
+graph.connect(&#39;a&#39;, PORTAL as any, &#39;b&#39;)
+</code></pre>
+<h3>Reverse connection not created</h3>
+<p><strong>Symptom:</strong> Bidirectional connection only works one way.</p>
+<p><strong>Cause:</strong> Custom direction has <code>opposite: null</code>.</p>
+<p><strong>Solution:</strong> Register the direction with a valid opposite:</p>
+<pre><code class="language-typescript">// This won&#39;t create reverse connections
+graph.registerDirection(&#39;TELEPORT&#39;, { opposite: null })
+
+// This will
+graph.registerDirection(&#39;TELEPORT&#39;, { opposite: &#39;TELEPORT&#39; })
+</code></pre>
+<h2>See Also</h2>
+<ul>
+<li><strong><a href="concept-directions.html">Directions Concept</a></strong> — Understanding direction mechanics</li>
+<li><strong><a href="api-direction-utilities.html">Direction Utilities API</a></strong> — Full method reference</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

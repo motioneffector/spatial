@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events API - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Events API</h1>
+<p>Subscribe to graph changes for real-time updates.</p>
+<hr>
+<h2><code>on()</code></h2>
+<p>Subscribes to a graph event.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">on(event: SpatialGraphEvent, callback: EventCallback): () =&gt; void
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>event</code></td>
+<td><code>SpatialGraphEvent</code></td>
+<td>Yes</td>
+<td>Event type to listen for</td>
+</tr>
+<tr>
+<td><code>callback</code></td>
+<td><code>EventCallback</code></td>
+<td>Yes</td>
+<td>Function called when event fires</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>() =&gt; void</code> — Unsubscribe function</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">// Subscribe
+const unsubscribe = graph.on(&#39;nodeCreated&#39;, (nodeId, nodeData) =&gt; {
+  console.log(`New node: ${nodeId}`)
+})
+
+graph.createNode(&#39;test&#39;)  // Logs: &quot;New node: test&quot;
+
+// Unsubscribe
+unsubscribe()
+graph.createNode(&#39;test2&#39;)  // No log
+</code></pre>
+<hr>
+<h2>Event Types</h2>
+<h3><code>nodeCreated</code></h3>
+<p>Fired when a node is added to the graph.</p>
+<p><strong>Callback Signature:</strong></p>
+<pre><code class="language-typescript">(nodeId: string, nodeData: NodeData) =&gt; void
+</code></pre>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.on(&#39;nodeCreated&#39;, (nodeId, nodeData) =&gt; {
+  console.log(&#39;Created:&#39;, nodeId)
+  console.log(&#39;Name:&#39;, nodeData.metadata.name)
+  console.log(&#39;Layer:&#39;, nodeData.layer)
+})
+</code></pre>
+<hr>
+<h3><code>nodeRemoved</code></h3>
+<p>Fired when a node is removed from the graph.</p>
+<p><strong>Callback Signature:</strong></p>
+<pre><code class="language-typescript">(nodeId: string) =&gt; void
+</code></pre>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.on(&#39;nodeRemoved&#39;, (nodeId) =&gt; {
+  console.log(&#39;Removed:&#39;, nodeId)
+  minimap.removeRoom(nodeId)
+})
+</code></pre>
+<hr>
+<h3><code>connectionCreated</code></h3>
+<p>Fired when a connection is created between nodes.</p>
+<p><strong>Callback Signature:</strong></p>
+<pre><code class="language-typescript">(from: string, direction: Direction, to: string) =&gt; void
+</code></pre>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.on(&#39;connectionCreated&#39;, (from, direction, to) =&gt; {
+  console.log(`${from} --${direction}--&gt; ${to}`)
+  minimap.addPath(from, to)
+})
+</code></pre>
+<p>Note: For bidirectional connections, this fires twice (once for each direction).</p>
+<hr>
+<h3><code>connectionRemoved</code></h3>
+<p>Fired when a connection is removed.</p>
+<p><strong>Callback Signature:</strong></p>
+<pre><code class="language-typescript">(from: string, direction: Direction) =&gt; void
+</code></pre>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.on(&#39;connectionRemoved&#39;, (from, direction) =&gt; {
+  console.log(`Disconnected: ${from} ${direction}`)
+})
+</code></pre>
+<hr>
+<h3><code>gateUpdated</code></h3>
+<p>Fired when a gate is added, updated, or removed.</p>
+<p><strong>Callback Signature:</strong></p>
+<pre><code class="language-typescript">(from: string, direction: Direction, gate: Gate | null) =&gt; void
+</code></pre>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.on(&#39;gateUpdated&#39;, (from, direction, gate) =&gt; {
+  if (gate === null) {
+    console.log(&#39;Gate removed&#39;)
+    audio.play(&#39;door-open.mp3&#39;)
+  } else if (gate.locked === false) {
+    console.log(&#39;Gate unlocked&#39;)
+    audio.play(&#39;unlock.mp3&#39;)
+  } else {
+    console.log(&#39;Gate set:&#39;, gate.id)
+  }
+})
+</code></pre>
+<hr>
+<h2>Types</h2>
+<h3><code>SpatialGraphEvent</code></h3>
+<p>Union of all event type strings.</p>
+<pre><code class="language-typescript">type SpatialGraphEvent =
+  | &#39;nodeCreated&#39;
+  | &#39;nodeRemoved&#39;
+  | &#39;connectionCreated&#39;
+  | &#39;connectionRemoved&#39;
+  | &#39;gateUpdated&#39;
+</code></pre>
+<h3><code>EventCallback</code></h3>
+<p>Union of all callback signatures.</p>
+<pre><code class="language-typescript">type NodeCreatedCallback = (nodeId: string, data: NodeData) =&gt; void
+type NodeRemovedCallback = (nodeId: string) =&gt; void
+type ConnectionCreatedCallback = (from: string, direction: Direction, to: string) =&gt; void
+type ConnectionRemovedCallback = (from: string, direction: Direction) =&gt; void
+type GateUpdatedCallback = (from: string, direction: Direction, gate: Gate | null) =&gt; void
+
+type EventCallback =
+  | NodeCreatedCallback
+  | NodeRemovedCallback
+  | ConnectionCreatedCallback
+  | ConnectionRemovedCallback
+  | GateUpdatedCallback
+</code></pre>
+<hr>
+<h2>Patterns</h2>
+<h3>Multiple Listeners</h3>
+<p>Register multiple callbacks for the same event:</p>
+<pre><code class="language-typescript">graph.on(&#39;nodeCreated&#39;, (id) =&gt; minimap.add(id))
+graph.on(&#39;nodeCreated&#39;, (id) =&gt; analytics.track(&#39;room&#39;, id))
+graph.on(&#39;nodeCreated&#39;, (id) =&gt; console.log(&#39;Created:&#39;, id))
+</code></pre>
+<h3>Cleanup on Unmount</h3>
+<p>Store unsubscribe functions for cleanup:</p>
+<pre><code class="language-typescript">// React example
+useEffect(() =&gt; {
+  const unsubs = [
+    graph.on(&#39;nodeCreated&#39;, handleNodeCreated),
+    graph.on(&#39;nodeRemoved&#39;, handleNodeRemoved),
+    graph.on(&#39;gateUpdated&#39;, handleGateUpdated),
+  ]
+
+  return () =&gt; unsubs.forEach(unsub =&gt; unsub())
+}, [])
+</code></pre>
+<h3>Conditional Handling</h3>
+<p>Filter events in the callback:</p>
+<pre><code class="language-typescript">graph.on(&#39;gateUpdated&#39;, (from, direction, gate) =&gt; {
+  // Only care about treasury door
+  if (from === &#39;hallway&#39; &amp;&amp; gate?.id === &#39;treasury-door&#39;) {
+    if (!gate.locked) {
+      achievements.unlock(&#39;opened-treasury&#39;)
+    }
+  }
+})
+</code></pre>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

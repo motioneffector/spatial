@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spatial Features API - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Spatial Features API</h1>
+<p>Methods for grid-based positioning, layers, and zone management.</p>
+<hr>
+<h2><code>getNodeAt()</code></h2>
+<p>Returns the node at a specific grid position.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getNodeAt(x: number, y: number, layer?: number): string | null
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>x</code></td>
+<td><code>number</code></td>
+<td>Yes</td>
+<td>X coordinate</td>
+</tr>
+<tr>
+<td><code>y</code></td>
+<td><code>number</code></td>
+<td>Yes</td>
+<td>Y coordinate</td>
+</tr>
+<tr>
+<td><code>layer</code></td>
+<td><code>number</code></td>
+<td>No</td>
+<td>Layer to search. Default: <code>1</code></td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>string | null</code> — Node ID at position, or null if empty</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.createNode(&#39;hall&#39;, { tiles: [{ x: 5, y: 3 }] })
+
+const node = graph.getNodeAt(5, 3)
+console.log(node)  // &#39;hall&#39;
+
+// Different layer
+const basement = graph.getNodeAt(5, 3, 0)
+console.log(basement)  // null (nothing at this layer)
+</code></pre>
+<hr>
+<h2><code>getTiles()</code></h2>
+<p>Returns all tile positions for a node.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getTiles(nodeId: string): TilePosition[]
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nodeId</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>The node ID</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>TilePosition[]</code> — Array of tile positions (empty if no tiles)</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.createNode(&#39;great-hall&#39;, {
+  tiles: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }]
+})
+
+const tiles = graph.getTiles(&#39;great-hall&#39;)
+console.log(tiles)
+// [{ x: 0, y: 0, layer: 1 }, { x: 1, y: 0, layer: 1 }, { x: 2, y: 0, layer: 1 }]
+
+// Node without tiles
+const noTiles = graph.getTiles(&#39;abstract-node&#39;)
+console.log(noTiles)  // []
+</code></pre>
+<hr>
+<h2><code>getBounds()</code></h2>
+<p>Returns the bounding box for a multi-tile node.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getBounds(nodeId: string): BoundingBox | null
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nodeId</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>The node ID</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>BoundingBox | null</code> — Bounding box, or null if no tiles</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.createNode(&#39;l-shaped&#39;, {
+  tiles: [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: 0, y: 2 }
+  ]
+})
+
+const bounds = graph.getBounds(&#39;l-shaped&#39;)
+console.log(bounds)
+// { minX: 0, maxX: 1, minY: 0, maxY: 2 }
+</code></pre>
+<hr>
+<h2><code>getNodesInLayer()</code></h2>
+<p>Returns all nodes on a specific layer.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getNodesInLayer(layer: number): string[]
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>layer</code></td>
+<td><code>number</code></td>
+<td>Yes</td>
+<td>Layer number to query</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>string[]</code> — Array of node IDs on that layer</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.createNode(&#39;basement&#39;, { layer: 0 })
+graph.createNode(&#39;ground&#39;, { layer: 1 })
+graph.createNode(&#39;upstairs&#39;, { layer: 2 })
+graph.createNode(&#39;also-ground&#39;, { layer: 1 })
+
+const groundFloor = graph.getNodesInLayer(1)
+console.log(groundFloor)  // [&#39;ground&#39;, &#39;also-ground&#39;]
+</code></pre>
+<hr>
+<h2><code>setZone()</code></h2>
+<p>Assigns a node to a zone.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">setZone(nodeId: string, zoneId: string): void
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nodeId</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Node to assign</td>
+</tr>
+<tr>
+<td><code>zoneId</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Zone identifier</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.setZone(&#39;throne-room&#39;, &#39;castle&#39;)
+graph.setZone(&#39;guard-room&#39;, &#39;castle&#39;)
+graph.setZone(&#39;market-stall&#39;, &#39;town&#39;)
+
+// Reassigning overwrites previous zone
+graph.setZone(&#39;throne-room&#39;, &#39;royal-quarters&#39;)
+</code></pre>
+<p><strong>Throws:</strong></p>
+<ul>
+<li><code>ValidationError</code> — When node does not exist</li>
+</ul>
+<hr>
+<h2><code>getZone()</code></h2>
+<p>Gets the zone ID for a node.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getZone(nodeId: string): string | null
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nodeId</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Node to query</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>string | null</code> — Zone ID, or null if not in a zone</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.setZone(&#39;throne-room&#39;, &#39;castle&#39;)
+
+const zone = graph.getZone(&#39;throne-room&#39;)
+console.log(zone)  // &#39;castle&#39;
+
+const noZone = graph.getZone(&#39;wilderness&#39;)
+console.log(noZone)  // null
+</code></pre>
+<hr>
+<h2><code>getNodesInZone()</code></h2>
+<p>Returns all nodes in a zone.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getNodesInZone(zoneId: string): string[]
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>zoneId</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Zone to query</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>string[]</code> — Array of node IDs in the zone</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.setZone(&#39;room-1&#39;, &#39;dungeon&#39;)
+graph.setZone(&#39;room-2&#39;, &#39;dungeon&#39;)
+graph.setZone(&#39;room-3&#39;, &#39;dungeon&#39;)
+graph.setZone(&#39;shop&#39;, &#39;town&#39;)
+
+const dungeonRooms = graph.getNodesInZone(&#39;dungeon&#39;)
+console.log(dungeonRooms)  // [&#39;room-1&#39;, &#39;room-2&#39;, &#39;room-3&#39;]
+
+const emptyZone = graph.getNodesInZone(&#39;nonexistent&#39;)
+console.log(emptyZone)  // []
+</code></pre>
+<hr>
+<h2><code>removeZone()</code></h2>
+<p>Removes a node from its zone.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">removeZone(nodeId: string): void
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nodeId</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Node to remove from zone</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.setZone(&#39;room-1&#39;, &#39;dungeon&#39;)
+console.log(graph.getZone(&#39;room-1&#39;))  // &#39;dungeon&#39;
+
+graph.removeZone(&#39;room-1&#39;)
+console.log(graph.getZone(&#39;room-1&#39;))  // null
+</code></pre>
+<hr>
+<h2>Types</h2>
+<h3><code>TilePosition</code></h3>
+<p>Grid coordinates for a tile.</p>
+<pre><code class="language-typescript">interface TilePosition {
+  x: number
+  y: number
+  layer?: number
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>x</code></td>
+<td><code>number</code></td>
+<td>Yes</td>
+<td>X coordinate</td>
+</tr>
+<tr>
+<td><code>y</code></td>
+<td><code>number</code></td>
+<td>Yes</td>
+<td>Y coordinate</td>
+</tr>
+<tr>
+<td><code>layer</code></td>
+<td><code>number</code></td>
+<td>No</td>
+<td>Layer (defaults to node&#39;s layer)</td>
+</tr>
+</tbody></table>
+<h3><code>BoundingBox</code></h3>
+<p>Bounding box for multi-tile nodes.</p>
+<pre><code class="language-typescript">interface BoundingBox {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>minX</code></td>
+<td><code>number</code></td>
+<td>Leftmost X coordinate</td>
+</tr>
+<tr>
+<td><code>maxX</code></td>
+<td><code>number</code></td>
+<td>Rightmost X coordinate</td>
+</tr>
+<tr>
+<td><code>minY</code></td>
+<td><code>number</code></td>
+<td>Lowest Y coordinate</td>
+</tr>
+<tr>
+<td><code>maxY</code></td>
+<td><code>number</code></td>
+<td>Highest Y coordinate</td>
+</tr>
+</tbody></table>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

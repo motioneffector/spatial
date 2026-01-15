@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pathfinding - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Pathfinding</h1>
+<p>Find optimal routes between locations, check reachability, and calculate distances. The library uses Dijkstra&#39;s algorithm to handle weighted paths and respects gates based on player context.</p>
+<h2>Prerequisites</h2>
+<p>Before starting, you should:</p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Understand connections</a></li>
+<li><a href="concept-gates.html">Understand gates</a> (if using locked paths)</li>
+</ul>
+<h2>Overview</h2>
+<p>We&#39;ll use pathfinding by:</p>
+<ol>
+<li>Finding a simple path between two nodes</li>
+<li>Working with weighted connections</li>
+<li>Handling locked gates in paths</li>
+<li>Querying reachability and distance</li>
+<li>Finding all reachable nodes from a position</li>
+</ol>
+<h2>Step 1: Find a Simple Path</h2>
+<p>Connect some nodes and find the route between them.</p>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+graph.createNode(&#39;entrance&#39;)
+graph.createNode(&#39;hallway&#39;)
+graph.createNode(&#39;library&#39;)
+graph.createNode(&#39;study&#39;)
+
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;hallway&#39;)
+graph.connect(&#39;hallway&#39;, Direction.EAST, &#39;library&#39;)
+graph.connect(&#39;library&#39;, Direction.NORTH, &#39;study&#39;)
+
+const path = graph.findPath(&#39;entrance&#39;, &#39;study&#39;)
+console.log(path)  // [&#39;entrance&#39;, &#39;hallway&#39;, &#39;library&#39;, &#39;study&#39;]
+</code></pre>
+<p>The path is an array of node IDs from start to finish, inclusive.</p>
+<h2>Step 2: Use Weighted Connections</h2>
+<p>Make some routes more costly to influence pathfinding.</p>
+<pre><code class="language-typescript">graph.createNode(&#39;a&#39;)
+graph.createNode(&#39;b&#39;)
+graph.createNode(&#39;c&#39;)
+graph.createNode(&#39;d&#39;)
+
+// Fast route: a → b → d (cost 1 + 1 = 2)
+graph.connect(&#39;a&#39;, Direction.NORTH, &#39;b&#39;, { cost: 1 })
+graph.connect(&#39;b&#39;, Direction.EAST, &#39;d&#39;, { cost: 1 })
+
+// Slow route: a → c → d (cost 5 + 1 = 6)
+graph.connect(&#39;a&#39;, Direction.EAST, &#39;c&#39;, { cost: 5 })
+graph.connect(&#39;c&#39;, Direction.NORTH, &#39;d&#39;, { cost: 1 })
+
+// Pathfinding prefers lower total cost
+const path = graph.findPath(&#39;a&#39;, &#39;d&#39;)
+console.log(path)  // [&#39;a&#39;, &#39;b&#39;, &#39;d&#39;] (cost 2, not cost 6)
+</code></pre>
+<p>Use higher costs for difficult terrain, longer corridors, or routes you want players to avoid unless necessary.</p>
+<h2>Step 3: Handle Locked Gates</h2>
+<p>Pathfinding respects gates. Pass player context to include inventory.</p>
+<pre><code class="language-typescript">graph.createNode(&#39;start&#39;)
+graph.createNode(&#39;treasure&#39;)
+graph.connect(&#39;start&#39;, Direction.EAST, &#39;treasure&#39;)
+
+graph.setGate(&#39;start&#39;, Direction.EAST, {
+  id: &#39;chest-lock&#39;,
+  locked: true,
+  keyId: &#39;chest-key&#39;
+})
+
+// Without key: no path
+const noKey = graph.findPath(&#39;start&#39;, &#39;treasure&#39;, {
+  context: { inventory: [] }
+})
+console.log(noKey)  // null
+
+// With key: path exists
+const withKey = graph.findPath(&#39;start&#39;, &#39;treasure&#39;, {
+  context: { inventory: [&#39;chest-key&#39;] }
+})
+console.log(withKey)  // [&#39;start&#39;, &#39;treasure&#39;]
+</code></pre>
+<h2>Step 4: Check Distance and Reachability</h2>
+<p>Query without getting the full path.</p>
+<pre><code class="language-typescript">// Is the destination reachable at all?
+const reachable = graph.canReach(&#39;entrance&#39;, &#39;study&#39;)
+console.log(reachable)  // true
+
+// What&#39;s the total cost to get there?
+const distance = graph.getDistance(&#39;entrance&#39;, &#39;study&#39;)
+console.log(distance)  // 3 (sum of connection costs)
+
+// If unreachable, distance is Infinity
+const blocked = graph.getDistance(&#39;entrance&#39;, &#39;unreachable-node&#39;)
+console.log(blocked)  // Infinity
+</code></pre>
+<h2>Step 5: Find All Reachable Nodes</h2>
+<p>Get everywhere the player can currently access.</p>
+<pre><code class="language-typescript">const allReachable = graph.getReachable(&#39;entrance&#39;)
+console.log(allReachable)  // [&#39;entrance&#39;, &#39;hallway&#39;, &#39;library&#39;, &#39;study&#39;]
+
+// With distance limit
+const nearby = graph.getReachable(&#39;entrance&#39;, { maxDistance: 2 })
+console.log(nearby)  // Nodes within 2 hops
+
+// With player context (respects locked gates)
+const withInventory = graph.getReachable(&#39;entrance&#39;, {
+  context: { inventory: [&#39;master-key&#39;] }
+})
+</code></pre>
+<h2>Complete Example</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+// Create a dungeon
+graph.createNode(&#39;entrance&#39;)
+graph.createNode(&#39;corridor&#39;)
+graph.createNode(&#39;armory&#39;)
+graph.createNode(&#39;boss-room&#39;)
+graph.createNode(&#39;treasure&#39;)
+
+// Connect with varying costs
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;corridor&#39;, { cost: 1 })
+graph.connect(&#39;corridor&#39;, Direction.WEST, &#39;armory&#39;, { cost: 1 })
+graph.connect(&#39;corridor&#39;, Direction.NORTH, &#39;boss-room&#39;, { cost: 1 })
+graph.connect(&#39;boss-room&#39;, Direction.EAST, &#39;treasure&#39;, { cost: 1 })
+
+// Lock the boss room
+graph.setGate(&#39;corridor&#39;, Direction.NORTH, {
+  id: &#39;boss-door&#39;,
+  locked: true,
+  keyId: &#39;boss-key&#39;
+})
+
+// Player without key
+const limitedReach = graph.getReachable(&#39;entrance&#39;, {
+  context: { inventory: [] }
+})
+console.log(&#39;Without key:&#39;, limitedReach)
+// [&#39;entrance&#39;, &#39;corridor&#39;, &#39;armory&#39;]
+
+// Player with key
+const fullReach = graph.getReachable(&#39;entrance&#39;, {
+  context: { inventory: [&#39;boss-key&#39;] }
+})
+console.log(&#39;With key:&#39;, fullReach)
+// [&#39;entrance&#39;, &#39;corridor&#39;, &#39;armory&#39;, &#39;boss-room&#39;, &#39;treasure&#39;]
+
+// Find path to treasure
+const path = graph.findPath(&#39;entrance&#39;, &#39;treasure&#39;, {
+  context: { inventory: [&#39;boss-key&#39;] }
+})
+console.log(&#39;Path to treasure:&#39;, path)
+// [&#39;entrance&#39;, &#39;corridor&#39;, &#39;boss-room&#39;, &#39;treasure&#39;]
+
+// Total distance
+const distance = graph.getDistance(&#39;entrance&#39;, &#39;treasure&#39;, {
+  context: { inventory: [&#39;boss-key&#39;] }
+})
+console.log(&#39;Distance:&#39;, distance)  // 3
+</code></pre>
+<h2>Variations</h2>
+<h3>Limiting Path Length</h3>
+<p>Reject paths that are too long.</p>
+<pre><code class="language-typescript">// Only find paths with 3 or fewer nodes
+const shortPath = graph.findPath(&#39;start&#39;, &#39;end&#39;, { maxLength: 3 })
+
+// Returns null if shortest path is longer than limit
+</code></pre>
+<h3>Finding Alternative Routes</h3>
+<p>If the direct path is blocked, pathfinding automatically finds alternatives.</p>
+<pre><code class="language-typescript">// Direct: a → b is locked
+// Alternative: a → c → d → b
+graph.setGate(&#39;a&#39;, Direction.EAST, { id: &#39;locked&#39;, locked: true, keyId: &#39;key&#39; })
+
+// Without key, finds the longer route (if one exists)
+const alternatePath = graph.findPath(&#39;a&#39;, &#39;b&#39;, {
+  context: { inventory: [] }
+})
+// Will return the unlocked route, or null if all routes blocked
+</code></pre>
+<h3>Same-Node Path</h3>
+<p>Finding a path to the current location returns just that node.</p>
+<pre><code class="language-typescript">const samePath = graph.findPath(&#39;entrance&#39;, &#39;entrance&#39;)
+console.log(samePath)  // [&#39;entrance&#39;]
+</code></pre>
+<h2>Troubleshooting</h2>
+<h3>Path returns null unexpectedly</h3>
+<p><strong>Symptom:</strong> <code>findPath()</code> returns <code>null</code> even though nodes are connected.</p>
+<p><strong>Cause:</strong> A locked gate is blocking the path and the context doesn&#39;t include the required key.</p>
+<p><strong>Solution:</strong> Check for gates along the path and ensure the context includes needed keys:</p>
+<pre><code class="language-typescript">const exits = graph.getExits(&#39;node&#39;)
+exits.forEach(exit =&gt; {
+  if (exit.gate?.locked) {
+    console.log(`Gate ${exit.gate.id} requires key: ${exit.gate.keyId}`)
+  }
+})
+</code></pre>
+<h3>Distance is Infinity</h3>
+<p><strong>Symptom:</strong> <code>getDistance()</code> returns <code>Infinity</code>.</p>
+<p><strong>Cause:</strong> No valid path exists between the nodes (disconnected or fully blocked).</p>
+<p><strong>Solution:</strong> Verify the nodes are connected with <code>canReach()</code> first:</p>
+<pre><code class="language-typescript">if (graph.canReach(&#39;a&#39;, &#39;b&#39;)) {
+  const dist = graph.getDistance(&#39;a&#39;, &#39;b&#39;)
+}
+</code></pre>
+<h2>See Also</h2>
+<ul>
+<li><strong><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding Concept</a></strong> — Understanding the algorithm</li>
+<li><strong><a href="concept-gates.html">Gates</a></strong> — How gates affect paths</li>
+<li><strong><a href="api-pathfinding.html">Pathfinding API</a></strong> — Full method reference</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

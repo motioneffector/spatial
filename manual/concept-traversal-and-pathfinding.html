@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traversal and Pathfinding - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Traversal and Pathfinding</h1>
+<p>Traversal checks if a single move is allowed. Pathfinding finds the best route across multiple moves. Both respect gates and use context (player inventory, game state) to determine accessibility.</p>
+<h2>How It Works</h2>
+<p><strong>Traversal</strong> asks: &quot;Can I move from A in direction D?&quot; It checks if a connection exists and whether any gate blocks it. You provide context—the player&#39;s inventory, discovered passages, and flag store—and get back an allowed/blocked result with a reason.</p>
+<p><strong>Pathfinding</strong> asks: &quot;What&#39;s the best route from A to B?&quot; The library uses Dijkstra&#39;s algorithm with weighted costs. Connections have a default cost of 1, but you can make some paths longer (wading through swamp) or shorter (express elevator). Locked gates block paths unless the player has the key.</p>
+<pre><code>Start: [Entrance]
+Goal:  [Treasury]
+
+Path: Entrance → Hall → Treasury
+Cost: 1 + 1 = 2
+
+If Hall→Treasury is locked and player lacks key:
+Path: null (no valid route)
+</code></pre>
+<h2>Basic Usage</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+graph.createNode(&#39;entrance&#39;)
+graph.createNode(&#39;hall&#39;)
+graph.createNode(&#39;treasury&#39;)
+
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;hall&#39;)
+graph.connect(&#39;hall&#39;, Direction.EAST, &#39;treasury&#39;)
+
+// Check single traversal
+const canMove = graph.canTraverse(&#39;entrance&#39;, Direction.NORTH, {
+  inventory: [&#39;torch&#39;]
+})
+console.log(canMove.allowed) // true
+
+// Find path between locations
+const path = graph.findPath(&#39;entrance&#39;, &#39;treasury&#39;)
+console.log(path) // [&#39;entrance&#39;, &#39;hall&#39;, &#39;treasury&#39;]
+
+// Check if destination is reachable
+const reachable = graph.canReach(&#39;entrance&#39;, &#39;treasury&#39;)
+console.log(reachable) // true
+
+// Get distance (total cost)
+const distance = graph.getDistance(&#39;entrance&#39;, &#39;treasury&#39;)
+console.log(distance) // 2
+</code></pre>
+<h2>Key Points</h2>
+<ul>
+<li><strong>Traversal returns detailed results</strong> — <code>{ allowed, reason, gateId }</code> tells you exactly why movement failed.</li>
+<li><strong>Pathfinding uses weighted costs</strong> — Connections default to cost 1. Higher costs make paths less attractive to the algorithm.</li>
+<li><strong>Locked gates block pathfinding</strong> — Unless the player has the required key in their context, the path won&#39;t route through locked gates.</li>
+<li><strong><code>getReachable()</code> finds all accessible nodes</strong> — Useful for fog-of-war, minimap updates, or &quot;where can I go from here?&quot;</li>
+</ul>
+<h2>Examples</h2>
+<h3>Weighted Paths</h3>
+<p>Make some routes more expensive to traverse.</p>
+<pre><code class="language-typescript">// Normal hallway
+graph.connect(&#39;a&#39;, Direction.NORTH, &#39;b&#39;, { cost: 1 })
+
+// Swamp (slow going)
+graph.connect(&#39;a&#39;, Direction.EAST, &#39;c&#39;, { cost: 5 })
+
+// Both lead to &#39;d&#39;
+graph.connect(&#39;b&#39;, Direction.EAST, &#39;d&#39;, { cost: 1 })
+graph.connect(&#39;c&#39;, Direction.NORTH, &#39;d&#39;, { cost: 1 })
+
+// Pathfinding prefers a→b→d (cost 2) over a→c→d (cost 6)
+const path = graph.findPath(&#39;a&#39;, &#39;d&#39;)
+console.log(path) // [&#39;a&#39;, &#39;b&#39;, &#39;d&#39;]
+</code></pre>
+<h3>Context-Aware Pathfinding</h3>
+<p>Pass player state to pathfinding.</p>
+<pre><code class="language-typescript">graph.setGate(&#39;hall&#39;, Direction.EAST, {
+  id: &#39;vault-door&#39;,
+  locked: true,
+  keyId: &#39;vault-key&#39;
+})
+
+// Without key: can&#39;t reach treasury
+const noKeyPath = graph.findPath(&#39;entrance&#39;, &#39;treasury&#39;, {
+  context: { inventory: [] }
+})
+console.log(noKeyPath) // null
+
+// With key: path exists
+const withKeyPath = graph.findPath(&#39;entrance&#39;, &#39;treasury&#39;, {
+  context: { inventory: [&#39;vault-key&#39;] }
+})
+console.log(withKeyPath) // [&#39;entrance&#39;, &#39;hall&#39;, &#39;treasury&#39;]
+</code></pre>
+<h3>Finding All Reachable Locations</h3>
+<p>Discover everywhere the player can currently go.</p>
+<pre><code class="language-typescript">const reachable = graph.getReachable(&#39;entrance&#39;, {
+  context: { inventory: [&#39;brass-key&#39;] }
+})
+console.log(reachable) // [&#39;entrance&#39;, &#39;hall&#39;, &#39;treasury&#39;, &#39;armory&#39;, ...]
+</code></pre>
+<h3>Limiting Search Distance</h3>
+<p>Restrict pathfinding to nearby locations.</p>
+<pre><code class="language-typescript">// Only find nodes within 3 hops
+const nearby = graph.getReachable(&#39;entrance&#39;, { maxDistance: 3 })
+
+// Limit path length
+const shortPath = graph.findPath(&#39;entrance&#39;, &#39;treasury&#39;, { maxLength: 2 })
+// Returns null if path requires more than 2 nodes
+</code></pre>
+<h3>Custom Traversal Logic</h3>
+<p>Override the default gate checking with your own logic.</p>
+<pre><code class="language-typescript">const graph = createSpatialGraph({
+  canTraverse: (connection, gate, context) =&gt; {
+    // Custom logic: require specific level
+    if (context.playerLevel &lt; 10) {
+      return { allowed: false, reason: &#39;Level too low&#39; }
+    }
+    // Fall through to default behavior for gates
+    if (gate?.locked &amp;&amp; !context.inventory?.includes(gate.keyId)) {
+      return { allowed: false, reason: &#39;locked&#39;, gateId: gate.id }
+    }
+    return { allowed: true }
+  }
+})
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><strong><a href="concept-gates.html">Gates</a></strong> — How gates control access</li>
+<li><strong><a href="guide-pathfinding.html">Pathfinding Guide</a></strong> — Practical pathfinding examples</li>
+<li><strong><a href="api-pathfinding.html">Pathfinding API</a></strong> — Full method reference</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

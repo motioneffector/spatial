@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Creation and Types API - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Graph Creation and Types API</h1>
+<p>Factory function for creating spatial graphs and TypeScript type definitions.</p>
+<hr>
+<h2><code>createSpatialGraph()</code></h2>
+<p>Creates a new spatial graph instance for managing nodes, connections, and pathfinding.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">function createSpatialGraph(options?: SpatialGraphOptions): SpatialGraph
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>options</code></td>
+<td><code>SpatialGraphOptions</code></td>
+<td>No</td>
+<td>Configuration options for the graph</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>SpatialGraph</code> — A new graph instance with all management methods</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">import { createSpatialGraph } from &#39;@motioneffector/spatial&#39;
+
+// Basic usage
+const graph = createSpatialGraph()
+
+// With flag store for conditional gates
+const graphWithFlags = createSpatialGraph({
+  flagStore: {
+    check: (condition) =&gt; gameState.evaluate(condition)
+  }
+})
+
+// With custom traversal logic
+const graphWithCustomTraversal = createSpatialGraph({
+  canTraverse: (connection, gate, context) =&gt; {
+    if (context.godMode) return { allowed: true }
+    // Default gate logic...
+    return { allowed: true }
+  }
+})
+</code></pre>
+<hr>
+<h2>Types</h2>
+<h3><code>SpatialGraphOptions</code></h3>
+<p>Configuration options for creating a graph.</p>
+<pre><code class="language-typescript">interface SpatialGraphOptions {
+  flagStore?: {
+    check: (condition: Condition) =&gt; boolean
+  }
+  canTraverse?: CanTraverseFunction
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>flagStore</code></td>
+<td><code>{ check: (condition: Condition) =&gt; boolean }</code></td>
+<td>No</td>
+<td>Flag store for evaluating conditional gates</td>
+</tr>
+<tr>
+<td><code>canTraverse</code></td>
+<td><code>CanTraverseFunction</code></td>
+<td>No</td>
+<td>Custom function to override default traversal logic</td>
+</tr>
+</tbody></table>
+<h3><code>SpatialGraph</code></h3>
+<p>The main graph interface with all management methods.</p>
+<pre><code class="language-typescript">interface SpatialGraph {
+  // Node management
+  createNode: (id: string, options?: CreateNodeOptions) =&gt; void
+  getNode: (id: string) =&gt; NodeData | null
+  hasNode: (id: string) =&gt; boolean
+  removeNode: (id: string) =&gt; NodeData
+  getAllNodes: () =&gt; string[]
+
+  // Connection management
+  connect: (from: string, direction: Direction, to: string, options?: ConnectOptions) =&gt; void
+  disconnect: (from: string, direction: Direction, options?: { bidirectional?: boolean }) =&gt; void
+  getConnection: (from: string, direction: Direction) =&gt; ConnectionData | null
+  getExits: (nodeId: string) =&gt; ExitInfo[]
+  getDestination: (from: string, direction: Direction) =&gt; string | null
+
+  // Gate system
+  setGate: (from: string, direction: Direction, gate: Gate) =&gt; void
+  updateGate: (from: string, direction: Direction, updates: Partial&lt;Gate&gt;) =&gt; void
+  removeGate: (from: string, direction: Direction) =&gt; void
+  getGate: (from: string, direction: Direction) =&gt; Gate | null
+
+  // Traversal
+  canTraverse: (from: string, direction: Direction, context?: TraversalContext) =&gt; TraversalResult
+
+  // Pathfinding
+  findPath: (from: string, to: string, options?: PathfindingOptions) =&gt; string[] | null
+  getDistance: (from: string, to: string, options?: PathfindingOptions) =&gt; number
+  canReach: (from: string, to: string, options?: PathfindingOptions) =&gt; boolean
+  getReachable: (from: string, options?: ReachableOptions) =&gt; string[]
+
+  // Spatial features
+  getNodeAt: (x: number, y: number, layer?: number) =&gt; string | null
+  getTiles: (nodeId: string) =&gt; TilePosition[]
+  getBounds: (nodeId: string) =&gt; BoundingBox | null
+  getNodesInLayer: (layer: number) =&gt; string[]
+  setZone: (nodeId: string, zoneId: string) =&gt; void
+  getZone: (nodeId: string) =&gt; string | null
+  getNodesInZone: (zoneId: string) =&gt; string[]
+  removeZone: (nodeId: string) =&gt; void
+
+  // Custom directions
+  registerDirection: (direction: string, options: RegisterDirectionOptions) =&gt; void
+
+  // Graph analysis
+  getOrphans: () =&gt; string[]
+  getDeadEnds: () =&gt; string[]
+  getSubgraphs: () =&gt; string[][]
+  validate: () =&gt; ValidationResult
+
+  // Events
+  on: (event: SpatialGraphEvent, callback: EventCallback) =&gt; () =&gt; void
+
+  // Serialization
+  serialize: () =&gt; SerializedGraph
+  deserialize: (data: SerializedGraph) =&gt; void
+}
+</code></pre>
+<h3><code>Direction</code></h3>
+<p>Direction constants and utilities.</p>
+<pre><code class="language-typescript">const Direction = {
+  NORTH: &#39;NORTH&#39;,
+  NORTHEAST: &#39;NORTHEAST&#39;,
+  EAST: &#39;EAST&#39;,
+  SOUTHEAST: &#39;SOUTHEAST&#39;,
+  SOUTH: &#39;SOUTH&#39;,
+  SOUTHWEST: &#39;SOUTHWEST&#39;,
+  WEST: &#39;WEST&#39;,
+  NORTHWEST: &#39;NORTHWEST&#39;,
+  UP: &#39;UP&#39;,
+  DOWN: &#39;DOWN&#39;,
+  IN: &#39;IN&#39;,
+  OUT: &#39;OUT&#39;,
+} as const
+
+type Direction = (typeof Direction)[keyof typeof Direction]
+</code></pre>
+<h3><code>Condition</code></h3>
+<p>Condition structure for conditional gates (integrates with @motioneffector/flags).</p>
+<pre><code class="language-typescript">type Condition = {
+  check: [string, string, unknown]
+}
+</code></pre>
+<h3><code>TraversalContext</code></h3>
+<p>Context passed to traversal checks.</p>
+<pre><code class="language-typescript">interface TraversalContext {
+  inventory?: string[]
+  flagStore?: {
+    check: (condition: Condition) =&gt; boolean
+  }
+  discovered?: string[]
+  [key: string]: unknown
+}
+</code></pre>
+<h3><code>TraversalResult</code></h3>
+<p>Result of a traversal check.</p>
+<pre><code class="language-typescript">interface TraversalResult {
+  allowed: boolean
+  reason?: string
+  gateId?: string
+}
+</code></pre>
+<h3><code>CanTraverseFunction</code></h3>
+<p>Custom traversal check function signature.</p>
+<pre><code class="language-typescript">type CanTraverseFunction = (
+  connection: ConnectionData,
+  gate: Gate | null,
+  context: TraversalContext
+) =&gt; TraversalResult
+</code></pre>
+<hr>
+<h2>Errors</h2>
+<h3><code>ValidationError</code></h3>
+<p>Thrown when validation fails (invalid parameters, missing nodes, etc.).</p>
+<pre><code class="language-typescript">import { ValidationError } from &#39;@motioneffector/spatial&#39;
+
+try {
+  graph.createNode(&#39;&#39;)  // Empty ID
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error(&#39;Validation failed:&#39;, error.message)
+  }
+}
+</code></pre>
+<h3><code>SpatialError</code></h3>
+<p>Base error class for all spatial errors.</p>
+<pre><code class="language-typescript">import { SpatialError } from &#39;@motioneffector/spatial&#39;
+</code></pre>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

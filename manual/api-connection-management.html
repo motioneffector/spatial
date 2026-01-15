@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connection Management API - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Connection Management API</h1>
+<p>Methods for creating, removing, and querying connections between nodes.</p>
+<hr>
+<h2><code>connect()</code></h2>
+<p>Creates a connection between two nodes in a direction.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">connect(
+  from: string,
+  direction: Direction,
+  to: string,
+  options?: ConnectOptions
+): void
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>from</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Source node ID</td>
+</tr>
+<tr>
+<td><code>direction</code></td>
+<td><code>Direction</code></td>
+<td>Yes</td>
+<td>Direction of the connection</td>
+</tr>
+<tr>
+<td><code>to</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Target node ID</td>
+</tr>
+<tr>
+<td><code>options</code></td>
+<td><code>ConnectOptions</code></td>
+<td>No</td>
+<td>Connection options</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">import { Direction } from &#39;@motioneffector/spatial&#39;
+
+// Bidirectional connection (default)
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;hallway&#39;)
+// Creates: entrance --NORTH--&gt; hallway
+// Creates: hallway --SOUTH--&gt; entrance
+
+// One-way connection
+graph.connect(&#39;ledge&#39;, Direction.DOWN, &#39;pit&#39;, { bidirectional: false })
+// Creates: ledge --DOWN--&gt; pit
+// No reverse connection
+
+// With cost
+graph.connect(&#39;swamp-start&#39;, Direction.EAST, &#39;swamp-end&#39;, { cost: 5 })
+
+// With tile positions
+graph.connect(&#39;hall&#39;, Direction.EAST, &#39;room&#39;, {
+  fromTile: { x: 2, y: 0 },
+  toTile: { x: 3, y: 0 }
+})
+</code></pre>
+<p><strong>Throws:</strong></p>
+<ul>
+<li><code>ValidationError</code> — When source or target node does not exist</li>
+</ul>
+<hr>
+<h2><code>disconnect()</code></h2>
+<p>Removes a connection in a direction.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">disconnect(
+  from: string,
+  direction: Direction,
+  options?: { bidirectional?: boolean }
+): void
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>from</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Source node ID</td>
+</tr>
+<tr>
+<td><code>direction</code></td>
+<td><code>Direction</code></td>
+<td>Yes</td>
+<td>Direction to disconnect</td>
+</tr>
+<tr>
+<td><code>options</code></td>
+<td><code>{ bidirectional?: boolean }</code></td>
+<td>No</td>
+<td>Whether to remove reverse connection. Default: matches original connection</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">// Remove connection (and its reverse if bidirectional)
+graph.disconnect(&#39;entrance&#39;, Direction.NORTH)
+
+// Remove only one direction
+graph.disconnect(&#39;entrance&#39;, Direction.NORTH, { bidirectional: false })
+</code></pre>
+<p><strong>Throws:</strong></p>
+<ul>
+<li><code>ValidationError</code> — When source node does not exist</li>
+</ul>
+<hr>
+<h2><code>getConnection()</code></h2>
+<p>Retrieves connection data for a specific direction.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getConnection(from: string, direction: Direction): ConnectionData | null
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>from</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Source node ID</td>
+</tr>
+<tr>
+<td><code>direction</code></td>
+<td><code>Direction</code></td>
+<td>Yes</td>
+<td>Direction to check</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>ConnectionData | null</code> — Connection data, or null if no connection</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">const conn = graph.getConnection(&#39;entrance&#39;, Direction.NORTH)
+if (conn) {
+  console.log(&#39;Target:&#39;, conn.target)
+  console.log(&#39;Direction:&#39;, conn.direction)
+  console.log(&#39;Cost:&#39;, conn.cost)
+  console.log(&#39;Gate:&#39;, conn.gate)
+}
+</code></pre>
+<hr>
+<h2><code>getExits()</code></h2>
+<p>Returns all exits (connections) from a node.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getExits(nodeId: string): ExitInfo[]
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nodeId</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>The node to get exits from</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>ExitInfo[]</code> — Array of exit information</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">const exits = graph.getExits(&#39;hub&#39;)
+exits.forEach(exit =&gt; {
+  console.log(`${exit.direction} → ${exit.target}`)
+  if (exit.gate?.locked) {
+    console.log(`  (locked, needs ${exit.gate.keyId})`)
+  }
+})
+</code></pre>
+<p><strong>Throws:</strong></p>
+<ul>
+<li><code>ValidationError</code> — When node does not exist</li>
+</ul>
+<hr>
+<h2><code>getDestination()</code></h2>
+<p>Gets the target node ID for a direction, if a connection exists.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getDestination(from: string, direction: Direction): string | null
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>from</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Source node ID</td>
+</tr>
+<tr>
+<td><code>direction</code></td>
+<td><code>Direction</code></td>
+<td>Yes</td>
+<td>Direction to check</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>string | null</code> — Target node ID, or null if no connection</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">const target = graph.getDestination(&#39;entrance&#39;, Direction.NORTH)
+if (target) {
+  console.log(`Going north leads to: ${target}`)
+} else {
+  console.log(&#39;Cannot go north from here&#39;)
+}
+</code></pre>
+<p><strong>Throws:</strong></p>
+<ul>
+<li><code>ValidationError</code> — When source node does not exist</li>
+</ul>
+<hr>
+<h2>Types</h2>
+<h3><code>ConnectOptions</code></h3>
+<p>Options for creating a connection.</p>
+<pre><code class="language-typescript">interface ConnectOptions {
+  bidirectional?: boolean
+  cost?: number
+  fromTile?: TilePosition
+  toTile?: TilePosition
+  gate?: Gate
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>bidirectional</code></td>
+<td><code>boolean</code></td>
+<td>No</td>
+<td>Create reverse connection. Default: <code>true</code></td>
+</tr>
+<tr>
+<td><code>cost</code></td>
+<td><code>number</code></td>
+<td>No</td>
+<td>Traversal cost for pathfinding. Default: <code>1</code></td>
+</tr>
+<tr>
+<td><code>fromTile</code></td>
+<td><code>TilePosition</code></td>
+<td>No</td>
+<td>Source tile position for multi-tile nodes</td>
+</tr>
+<tr>
+<td><code>toTile</code></td>
+<td><code>TilePosition</code></td>
+<td>No</td>
+<td>Target tile position for multi-tile nodes</td>
+</tr>
+<tr>
+<td><code>gate</code></td>
+<td><code>Gate</code></td>
+<td>No</td>
+<td>Gate to add to the connection</td>
+</tr>
+</tbody></table>
+<h3><code>ConnectionData</code></h3>
+<p>Data structure for a connection.</p>
+<pre><code class="language-typescript">interface ConnectionData {
+  target: string
+  direction: Direction
+  gate?: Gate | null
+  cost?: number
+  fromTile?: TilePosition
+  toTile?: TilePosition
+}
+</code></pre>
+<h3><code>ExitInfo</code></h3>
+<p>Information about an exit from a node.</p>
+<pre><code class="language-typescript">interface ExitInfo {
+  direction: Direction
+  target: string
+  gate?: Gate | null
+  cost?: number
+}
+</code></pre>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

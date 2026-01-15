@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analyzing Graph Structure - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Analyzing Graph Structure</h1>
+<p>Find problems in your graph, detect unreachable areas, and get statistics. Use these tools during development to validate maps or at runtime for player exploration features.</p>
+<h2>Prerequisites</h2>
+<p>Before starting, you should:</p>
+<ul>
+<li>Have a graph with multiple nodes and connections</li>
+</ul>
+<h2>Overview</h2>
+<p>We&#39;ll analyze graphs by:</p>
+<ol>
+<li>Finding orphan nodes (no connections at all)</li>
+<li>Finding dead ends (single exit only)</li>
+<li>Detecting disconnected subgraphs</li>
+<li>Validating structural integrity</li>
+</ol>
+<h2>Step 1: Find Orphan Nodes</h2>
+<p>Orphans are nodes with no connections—neither incoming nor outgoing.</p>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+graph.createNode(&#39;connected-1&#39;)
+graph.createNode(&#39;connected-2&#39;)
+graph.createNode(&#39;orphan&#39;)  // Never connected
+
+graph.connect(&#39;connected-1&#39;, Direction.NORTH, &#39;connected-2&#39;)
+
+const orphans = graph.getOrphans()
+console.log(orphans)  // [&#39;orphan&#39;]
+</code></pre>
+<p>Orphans are usually mistakes—rooms that should be connected but aren&#39;t.</p>
+<h2>Step 2: Find Dead Ends</h2>
+<p>Dead ends are nodes with exactly one exit. Players can enter but have only one way out.</p>
+<pre><code class="language-typescript">graph.createNode(&#39;entrance&#39;)
+graph.createNode(&#39;hallway&#39;)
+graph.createNode(&#39;dead-end-room&#39;)
+
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;hallway&#39;)
+graph.connect(&#39;hallway&#39;, Direction.EAST, &#39;dead-end-room&#39;)
+
+const deadEnds = graph.getDeadEnds()
+console.log(deadEnds)  // [&#39;entrance&#39;, &#39;dead-end-room&#39;]
+
+// &#39;hallway&#39; has 2 exits (SOUTH to entrance, EAST to dead-end-room)
+// &#39;entrance&#39; has 1 exit (NORTH to hallway)
+// &#39;dead-end-room&#39; has 1 exit (WEST to hallway)
+</code></pre>
+<p>Dead ends aren&#39;t always problems—treasure rooms or story endpoints are intentionally dead ends.</p>
+<h2>Step 3: Detect Disconnected Subgraphs</h2>
+<p>Find groups of nodes that aren&#39;t connected to each other.</p>
+<pre><code class="language-typescript">graph.createNode(&#39;zone-a-1&#39;)
+graph.createNode(&#39;zone-a-2&#39;)
+graph.createNode(&#39;zone-b-1&#39;)
+graph.createNode(&#39;zone-b-2&#39;)
+
+// Zone A is internally connected
+graph.connect(&#39;zone-a-1&#39;, Direction.NORTH, &#39;zone-a-2&#39;)
+
+// Zone B is internally connected
+graph.connect(&#39;zone-b-1&#39;, Direction.NORTH, &#39;zone-b-2&#39;)
+
+// But zones A and B are NOT connected to each other
+
+const subgraphs = graph.getSubgraphs()
+console.log(subgraphs)
+// [
+//   [&#39;zone-a-1&#39;, &#39;zone-a-2&#39;],
+//   [&#39;zone-b-1&#39;, &#39;zone-b-2&#39;]
+// ]
+</code></pre>
+<p>Multiple subgraphs mean players can&#39;t travel between areas (unless that&#39;s intentional, like separate levels).</p>
+<h2>Step 4: Validate Graph Integrity</h2>
+<p>Check for structural problems like connections pointing to non-existent nodes.</p>
+<pre><code class="language-typescript">const result = graph.validate()
+
+if (result.valid) {
+  console.log(&#39;Graph structure is valid&#39;)
+} else {
+  console.error(&#39;Problems found:&#39;)
+  result.errors?.forEach(error =&gt; console.error(`  - ${error}`))
+}
+</code></pre>
+<p>Validation catches issues that might occur from corrupted save files or manual data manipulation.</p>
+<h2>Complete Example</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+function analyzeMap(graph: SpatialGraph) {
+  console.log(&#39;=== Map Analysis ===\n&#39;)
+
+  // Basic stats
+  const allNodes = graph.getAllNodes()
+  console.log(`Total rooms: ${allNodes.length}`)
+
+  // Orphans (probably mistakes)
+  const orphans = graph.getOrphans()
+  if (orphans.length &gt; 0) {
+    console.log(`\n⚠️  Orphan rooms (no connections):`)
+    orphans.forEach(id =&gt; console.log(`   - ${id}`))
+  }
+
+  // Dead ends (may be intentional)
+  const deadEnds = graph.getDeadEnds()
+  console.log(`\nDead end rooms: ${deadEnds.length}`)
+  deadEnds.forEach(id =&gt; {
+    const node = graph.getNode(id)
+    console.log(`   - ${id} (${node?.metadata.name || &#39;unnamed&#39;})`)
+  })
+
+  // Subgraphs (disconnected areas)
+  const subgraphs = graph.getSubgraphs()
+  if (subgraphs.length &gt; 1) {
+    console.log(`\n⚠️  Disconnected areas found: ${subgraphs.length}`)
+    subgraphs.forEach((group, i) =&gt; {
+      console.log(`   Area ${i + 1}: ${group.length} rooms`)
+      console.log(`      Rooms: ${group.slice(0, 5).join(&#39;, &#39;)}${group.length &gt; 5 ? &#39;...&#39; : &#39;&#39;}`)
+    })
+  } else {
+    console.log(`\n✓ All rooms are connected`)
+  }
+
+  // Validation
+  const validation = graph.validate()
+  if (validation.valid) {
+    console.log(`\n✓ Graph structure is valid`)
+  } else {
+    console.log(`\n❌ Structural problems:`)
+    validation.errors?.forEach(err =&gt; console.log(`   - ${err}`))
+  }
+}
+
+// Usage
+const graph = createSpatialGraph()
+// ... build your graph ...
+analyzeMap(graph)
+</code></pre>
+<h2>Variations</h2>
+<h3>Player Exploration Percentage</h3>
+<p>Track how much of the map the player has discovered.</p>
+<pre><code class="language-typescript">function getExplorationPercent(visitedNodes: Set&lt;string&gt;, graph: SpatialGraph) {
+  const totalNodes = graph.getAllNodes().length
+  const visitedCount = visitedNodes.size
+  return Math.round((visitedCount / totalNodes) * 100)
+}
+
+const visited = new Set([&#39;entrance&#39;, &#39;hallway&#39;, &#39;library&#39;])
+console.log(`Explored: ${getExplorationPercent(visited, graph)}%`)
+</code></pre>
+<h3>Finding Bottlenecks</h3>
+<p>Identify nodes that connect otherwise separate areas.</p>
+<pre><code class="language-typescript">function findBottlenecks(graph: SpatialGraph): string[] {
+  const bottlenecks: string[] = []
+
+  for (const nodeId of graph.getAllNodes()) {
+    // Temporarily &quot;remove&quot; node by checking subgraphs without it
+    const originalSubgraphs = graph.getSubgraphs().length
+
+    // Save and remove connections
+    const exits = graph.getExits(nodeId)
+
+    // Check what happens if this node didn&#39;t exist
+    // (This is a simplified check - real implementation would be more complex)
+    if (exits.length &gt; 2) {
+      bottlenecks.push(nodeId)  // Nodes with many connections are often bottlenecks
+    }
+  }
+
+  return bottlenecks
+}
+</code></pre>
+<h3>Development-Time Validation</h3>
+<p>Run analysis as part of your build process.</p>
+<pre><code class="language-typescript">// map-validator.ts
+import { loadMap } from &#39;./map-loader&#39;
+
+const graph = loadMap(&#39;main-dungeon&#39;)
+
+const orphans = graph.getOrphans()
+if (orphans.length &gt; 0) {
+  console.error(&#39;Build failed: orphan rooms found:&#39;, orphans)
+  process.exit(1)
+}
+
+const subgraphs = graph.getSubgraphs()
+if (subgraphs.length &gt; 1) {
+  console.error(&#39;Build failed: disconnected areas found&#39;)
+  process.exit(1)
+}
+
+console.log(&#39;Map validation passed&#39;)
+</code></pre>
+<h3>Zone Completeness</h3>
+<p>Check that all nodes in a zone are connected within that zone.</p>
+<pre><code class="language-typescript">function checkZoneConnectivity(graph: SpatialGraph, zoneId: string) {
+  const zoneNodes = graph.getNodesInZone(zoneId)
+  if (zoneNodes.length === 0) return true
+
+  // Check if all zone nodes are in the same subgraph
+  const subgraphs = graph.getSubgraphs()
+  const nodeSubgraph = subgraphs.find(sg =&gt; sg.includes(zoneNodes[0]))
+
+  const allConnected = zoneNodes.every(node =&gt; nodeSubgraph?.includes(node))
+
+  if (!allConnected) {
+    console.warn(`Zone &quot;${zoneId}&quot; has disconnected rooms`)
+  }
+
+  return allConnected
+}
+</code></pre>
+<h2>Troubleshooting</h2>
+<h3>getOrphans returns unexpected nodes</h3>
+<p><strong>Symptom:</strong> Nodes that should have connections appear as orphans.</p>
+<p><strong>Cause:</strong> Connections were created in wrong direction or to wrong node ID.</p>
+<p><strong>Solution:</strong> Check exits from both sides:</p>
+<pre><code class="language-typescript">const exitsA = graph.getExits(&#39;node-a&#39;)
+const exitsB = graph.getExits(&#39;node-b&#39;)
+console.log(&#39;A exits:&#39;, exitsA)
+console.log(&#39;B exits:&#39;, exitsB)
+</code></pre>
+<h3>getSubgraphs returns single-node arrays</h3>
+<p><strong>Symptom:</strong> Subgraphs contain one node each.</p>
+<p><strong>Cause:</strong> Nodes are created but not connected.</p>
+<p><strong>Solution:</strong> Verify connections exist:</p>
+<pre><code class="language-typescript">graph.getAllNodes().forEach(id =&gt; {
+  const exits = graph.getExits(id)
+  if (exits.length === 0) {
+    console.log(`${id} has no exits`)
+  }
+})
+</code></pre>
+<h2>See Also</h2>
+<ul>
+<li><strong><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></strong> — Related reachability concepts</li>
+<li><strong><a href="guide-saving-and-loading-graphs.html">Saving and Loading</a></strong> — Validate after loading</li>
+<li><strong><a href="api-graph-analysis.html">Graph Analysis API</a></strong> — Full method reference</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

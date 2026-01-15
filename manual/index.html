@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@motioneffector/spatial - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>@motioneffector/spatial</h1>
+<p>Stop thinking about rooms as items in an array. Start thinking about spaces players can navigate with natural directions like &quot;go north&quot; or &quot;climb up.&quot; This library models your game world as a directional graph where locations connect via compass directions, doors can be locked until players find keys, and pathfinding just works. You focus on world-building; the graph handles relationships.</p>
+<h2>I want to...</h2>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Where to go</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Get up and running quickly</td>
+<td><a href="your-first-map.html">Your First Map</a></td>
+</tr>
+<tr>
+<td>Understand how nodes and connections work</td>
+<td><a href="concept-nodes-and-connections.html">Nodes and Connections</a></td>
+</tr>
+<tr>
+<td>Add locked doors to my map</td>
+<td><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></td>
+</tr>
+<tr>
+<td>Find paths between locations</td>
+<td><a href="guide-pathfinding.html">Pathfinding</a></td>
+</tr>
+<tr>
+<td>Create multi-floor buildings</td>
+<td><a href="guide-working-with-layers.html">Working with Layers</a></td>
+</tr>
+<tr>
+<td>Look up a specific method</td>
+<td><a href="api-node-management.html">API Reference</a></td>
+</tr>
+</tbody></table>
+<h2>Key Concepts</h2>
+<h3>Nodes and Connections</h3>
+<p>Nodes are locations in your game—rooms, areas, tiles, anything a player can be &quot;in.&quot; Connections link nodes via directions (NORTH, UP, etc.). When you connect A to B going NORTH, the library automatically creates the reverse connection from B to A going SOUTH.</p>
+<h3>Directions</h3>
+<p>The vocabulary of navigation. Built-in directions cover compass movement (N/S/E/W and diagonals), vertical movement (UP/DOWN), and special cases (IN/OUT). You can register custom directions for portals, teleporters, or game-specific movement.</p>
+<h3>Gates</h3>
+<p>Access control for connections. A gate might be a locked door requiring a key, a hidden passage that must be discovered, or a drawbridge that only lowers when a game flag is set. Gates answer: &quot;Can the player go this way right now?&quot;</p>
+<h3>Pathfinding</h3>
+<p>Find optimal routes between locations using Dijkstra&#39;s algorithm. The library handles weighted costs, respects locked gates based on player inventory, and can tell you all reachable locations from any starting point.</p>
+<h2>Quick Example</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+// Create a graph and add rooms
+const graph = createSpatialGraph()
+graph.createNode(&#39;entrance&#39;, { name: &#39;Entrance Hall&#39; })
+graph.createNode(&#39;library&#39;, { name: &#39;Library&#39; })
+graph.createNode(&#39;treasury&#39;, { name: &#39;Treasury&#39; })
+
+// Connect rooms with directions
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;library&#39;)
+graph.connect(&#39;library&#39;, Direction.EAST, &#39;treasury&#39;)
+
+// Add a locked door to the treasury
+graph.setGate(&#39;library&#39;, Direction.EAST, {
+  id: &#39;treasury-door&#39;,
+  locked: true,
+  keyId: &#39;gold-key&#39;
+})
+
+// Check if player can enter treasury
+const result = graph.canTraverse(&#39;library&#39;, Direction.EAST, {
+  inventory: [&#39;gold-key&#39;]
+})
+console.log(result.allowed) // true
+
+// Find path from entrance to treasury
+const path = graph.findPath(&#39;entrance&#39;, &#39;treasury&#39;)
+console.log(path) // [&#39;entrance&#39;, &#39;library&#39;, &#39;treasury&#39;]
+</code></pre>
+<hr>
+<p><strong><a href="api-graph-creation-and-types.html">Full API Reference →</a></strong></p>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
