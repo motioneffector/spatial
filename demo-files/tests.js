@@ -3,6 +3,10 @@
  * Includes integrity tests and library-specific tests
  */
 
+// Import library to ensure it's available (also set by demo.js)
+import * as Library from '../dist/index.js'
+if (!window.Library) window.Library = Library
+
 // ============================================
 // DEMO INTEGRITY TESTS
 // These tests verify the demo itself is correctly structured.

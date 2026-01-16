@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Directions - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Directions</h1>
+<p>Directions are the language of navigation. They define how nodes connect and how players describe movement—&quot;go north,&quot; &quot;climb up,&quot; &quot;enter the portal.&quot; The library provides built-in directions for common cases and lets you register custom ones for game-specific movement.</p>
+<h2>How It Works</h2>
+<p>Every direction has an opposite. NORTH&#39;s opposite is SOUTH. UP&#39;s opposite is DOWN. When you create a bidirectional connection, the library uses the opposite to create the reverse link automatically.</p>
+<p>Built-in directions cover:</p>
+<ul>
+<li><strong>Compass:</strong> NORTH, SOUTH, EAST, WEST, NORTHEAST, SOUTHEAST, SOUTHWEST, NORTHWEST</li>
+<li><strong>Vertical:</strong> UP, DOWN</li>
+<li><strong>Special:</strong> IN, OUT</li>
+</ul>
+<p>Custom directions extend this vocabulary. Define PORTAL with a self-opposite (portal goes both ways), or WARP with no opposite (one-way teleport).</p>
+<h2>Basic Usage</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+graph.createNode(&#39;room1&#39;)
+graph.createNode(&#39;room2&#39;)
+
+// Use built-in direction constants
+graph.connect(&#39;room1&#39;, Direction.NORTH, &#39;room2&#39;)
+graph.connect(&#39;room1&#39;, Direction.UP, &#39;room2&#39;)
+
+// Get the opposite of a direction
+const opposite = Direction.opposite(&#39;NORTH&#39;)
+console.log(opposite) // &#39;SOUTH&#39;
+
+// Parse player input to direction constants
+const parsed = Direction.parse(&#39;n&#39;)     // &#39;NORTH&#39;
+const parsed2 = Direction.parse(&#39;ne&#39;)   // &#39;NORTHEAST&#39;
+const parsed3 = Direction.parse(&#39;up&#39;)   // &#39;UP&#39;
+</code></pre>
+<p>Use <code>Direction.parse()</code> to convert player input (&quot;n&quot;, &quot;north&quot;, &quot;NORTH&quot;) into consistent direction constants.</p>
+<h2>Key Points</h2>
+<ul>
+<li><strong>Every built-in direction has an opposite</strong> — This enables automatic bidirectional connections. NORTH↔SOUTH, EAST↔WEST, UP↔DOWN, IN↔OUT.</li>
+<li><strong>Parsing is case-insensitive</strong> — &quot;N&quot;, &quot;n&quot;, &quot;north&quot;, &quot;NORTH&quot; all parse to <code>&#39;NORTH&#39;</code>.</li>
+<li><strong>Abbreviations are supported</strong> — &quot;n&quot;, &quot;ne&quot;, &quot;u&quot;, &quot;d&quot; work as expected for compass and vertical directions.</li>
+<li><strong>Invalid input returns null</strong> — <code>Direction.parse(&#39;invalid&#39;)</code> returns <code>null</code>, not an error.</li>
+</ul>
+<h2>Examples</h2>
+<h3>Parsing Player Commands</h3>
+<p>Handle text input from players.</p>
+<pre><code class="language-typescript">function handleMove(playerInput: string, currentRoom: string) {
+  const direction = Direction.parse(playerInput)
+
+  if (!direction) {
+    return &quot;I don&#39;t understand that direction.&quot;
+  }
+
+  const destination = graph.getDestination(currentRoom, direction)
+
+  if (!destination) {
+    return &quot;You can&#39;t go that way.&quot;
+  }
+
+  return destination
+}
+
+handleMove(&#39;n&#39;, &#39;entrance&#39;)    // Returns destination or message
+handleMove(&#39;north&#39;, &#39;entrance&#39;)  // Same result
+handleMove(&#39;xyzzy&#39;, &#39;entrance&#39;)  // &quot;I don&#39;t understand that direction.&quot;
+</code></pre>
+<h3>Custom Directions</h3>
+<p>Register game-specific movement types.</p>
+<pre><code class="language-typescript">// Self-opposite: entering a portal exits from the same portal
+graph.registerDirection(&#39;PORTAL&#39;, { opposite: &#39;PORTAL&#39; })
+
+// No opposite: warp is one-way
+graph.registerDirection(&#39;WARP&#39;, { opposite: null })
+
+// Paired opposites: enter and exit are distinct
+graph.registerDirection(&#39;ENTER&#39;, { opposite: &#39;EXIT&#39; })
+
+// Now use them like built-in directions
+graph.connect(&#39;shrine&#39;, &#39;PORTAL&#39; as any, &#39;mirror-shrine&#39;)
+graph.connect(&#39;dungeon&#39;, &#39;WARP&#39; as any, &#39;surface&#39;, { bidirectional: false })
+</code></pre>
+<h3>All Built-in Directions</h3>
+<pre><code class="language-typescript">// Compass (8 directions)
+Direction.NORTH      Direction.SOUTH
+Direction.EAST       Direction.WEST
+Direction.NORTHEAST  Direction.SOUTHWEST
+Direction.NORTHWEST  Direction.SOUTHEAST
+
+// Vertical (2 directions)
+Direction.UP         Direction.DOWN
+
+// Special (2 directions)
+Direction.IN         Direction.OUT
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><strong><a href="concept-nodes-and-connections.html">Nodes and Connections</a></strong> — How directions link nodes together</li>
+<li><strong><a href="guide-custom-directions.html">Custom Directions Guide</a></strong> — Detailed guide on creating custom directions</li>
+<li><strong><a href="api-direction-utilities.html">Direction Utilities API</a></strong> — Full reference for Direction methods</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

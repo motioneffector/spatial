@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reacting to Graph Changes - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Reacting to Graph Changes</h1>
+<p>Subscribe to events when nodes, connections, or gates change. Use this for minimap updates, audio cues, achievement tracking, or any side effects that should happen when the graph changes.</p>
+<h2>Prerequisites</h2>
+<p>Before starting, you should:</p>
+<ul>
+<li>Have a working graph</li>
+</ul>
+<h2>Overview</h2>
+<p>We&#39;ll react to changes by:</p>
+<ol>
+<li>Subscribing to events with <code>on()</code></li>
+<li>Handling different event types</li>
+<li>Unsubscribing when done</li>
+</ol>
+<h2>Step 1: Subscribe to Events</h2>
+<p>Use <code>on()</code> to register a callback for an event type.</p>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+// Subscribe to node creation
+graph.on(&#39;nodeCreated&#39;, (nodeId, nodeData) =&gt; {
+  console.log(`New room: ${nodeId}`)
+  console.log(`Name: ${nodeData.metadata.name}`)
+})
+
+// Now when nodes are created, callback fires
+graph.createNode(&#39;library&#39;, { name: &#39;Library&#39; })
+// Logs: &quot;New room: library&quot;
+// Logs: &quot;Name: Library&quot;
+</code></pre>
+<h2>Step 2: Handle Different Events</h2>
+<p>The library emits five event types:</p>
+<pre><code class="language-typescript">// Node added
+graph.on(&#39;nodeCreated&#39;, (nodeId, nodeData) =&gt; {
+  console.log(`Created: ${nodeId}`)
+})
+
+// Node removed
+graph.on(&#39;nodeRemoved&#39;, (nodeId) =&gt; {
+  console.log(`Removed: ${nodeId}`)
+})
+
+// Connection added
+graph.on(&#39;connectionCreated&#39;, (from, direction, to) =&gt; {
+  console.log(`Connected: ${from} --${direction}--&gt; ${to}`)
+})
+
+// Connection removed
+graph.on(&#39;connectionRemoved&#39;, (from, direction) =&gt; {
+  console.log(`Disconnected: ${from} ${direction}`)
+})
+
+// Gate added, updated, or removed
+graph.on(&#39;gateUpdated&#39;, (from, direction, gate) =&gt; {
+  if (gate) {
+    console.log(`Gate ${gate.id} on ${from} ${direction}: locked=${gate.locked}`)
+  } else {
+    console.log(`Gate removed from ${from} ${direction}`)
+  }
+})
+</code></pre>
+<h2>Step 3: Unsubscribe</h2>
+<p>The <code>on()</code> method returns an unsubscribe function.</p>
+<pre><code class="language-typescript">const unsubscribe = graph.on(&#39;nodeCreated&#39;, (nodeId) =&gt; {
+  console.log(`New node: ${nodeId}`)
+})
+
+graph.createNode(&#39;room1&#39;)  // Logs: &quot;New node: room1&quot;
+
+// Stop listening
+unsubscribe()
+
+graph.createNode(&#39;room2&#39;)  // No log - unsubscribed
+</code></pre>
+<h2>Complete Example</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+// === MINIMAP UPDATES ===
+graph.on(&#39;nodeCreated&#39;, (nodeId, data) =&gt; {
+  minimap.addRoom(nodeId, {
+    name: data.metadata.name,
+    layer: data.layer,
+    tiles: data.tiles
+  })
+})
+
+graph.on(&#39;nodeRemoved&#39;, (nodeId) =&gt; {
+  minimap.removeRoom(nodeId)
+})
+
+graph.on(&#39;connectionCreated&#39;, (from, direction, to) =&gt; {
+  minimap.addPath(from, to, direction)
+})
+
+// === AUDIO CUES ===
+graph.on(&#39;gateUpdated&#39;, (from, direction, gate) =&gt; {
+  if (gate === null) {
+    audio.play(&#39;door-open.mp3&#39;)
+  } else if (gate.locked === false) {
+    audio.play(&#39;unlock.mp3&#39;)
+  }
+})
+
+// === ACHIEVEMENT TRACKING ===
+let roomCount = 0
+const achievementUnsub = graph.on(&#39;nodeCreated&#39;, () =&gt; {
+  roomCount++
+  if (roomCount &gt;= 100) {
+    achievements.unlock(&#39;cartographer&#39;)
+    achievementUnsub()  // Stop checking after achievement
+  }
+})
+
+// === BUILD THE GRAPH ===
+graph.createNode(&#39;entrance&#39;, { name: &#39;Entrance&#39; })
+graph.createNode(&#39;hallway&#39;, { name: &#39;Hallway&#39; })
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;hallway&#39;)
+
+// Each action triggers the appropriate callbacks
+</code></pre>
+<h2>Variations</h2>
+<h3>Debouncing Rapid Changes</h3>
+<p>Batch updates when many changes happen at once.</p>
+<pre><code class="language-typescript">let pendingUpdates: string[] = []
+let updateTimer: NodeJS.Timeout | null = null
+
+graph.on(&#39;nodeCreated&#39;, (nodeId) =&gt; {
+  pendingUpdates.push(nodeId)
+
+  if (!updateTimer) {
+    updateTimer = setTimeout(() =&gt; {
+      console.log(&#39;Batch update:&#39;, pendingUpdates)
+      minimap.batchAdd(pendingUpdates)
+      pendingUpdates = []
+      updateTimer = null
+    }, 100)  // Wait 100ms for more changes
+  }
+})
+</code></pre>
+<h3>Conditional Event Handling</h3>
+<p>Only react to certain nodes or conditions.</p>
+<pre><code class="language-typescript">graph.on(&#39;gateUpdated&#39;, (from, direction, gate) =&gt; {
+  // Only care about treasure room door
+  if (from === &#39;treasure-room&#39; &amp;&amp; gate?.locked === false) {
+    triggerCutscene(&#39;treasure-discovered&#39;)
+  }
+})
+</code></pre>
+<h3>Tracking History</h3>
+<p>Record all changes for undo/redo.</p>
+<pre><code class="language-typescript">type HistoryEntry = {
+  type: string
+  data: unknown
+  timestamp: number
+}
+
+const history: HistoryEntry[] = []
+
+graph.on(&#39;nodeCreated&#39;, (nodeId, data) =&gt; {
+  history.push({
+    type: &#39;nodeCreated&#39;,
+    data: { nodeId, nodeData: data },
+    timestamp: Date.now()
+  })
+})
+
+graph.on(&#39;nodeRemoved&#39;, (nodeId) =&gt; {
+  history.push({
+    type: &#39;nodeRemoved&#39;,
+    data: { nodeId },
+    timestamp: Date.now()
+  })
+})
+
+// Review history
+console.log(&#39;Last 10 changes:&#39;, history.slice(-10))
+</code></pre>
+<h3>Multiple Listeners</h3>
+<p>Register multiple callbacks for the same event.</p>
+<pre><code class="language-typescript">// Minimap update
+graph.on(&#39;nodeCreated&#39;, (id) =&gt; minimap.add(id))
+
+// Analytics tracking
+graph.on(&#39;nodeCreated&#39;, (id) =&gt; analytics.track(&#39;room_created&#39;, { id }))
+
+// Debug logging
+graph.on(&#39;nodeCreated&#39;, (id) =&gt; console.debug(`[DEBUG] Node created: ${id}`))
+
+// All three fire for each node creation
+</code></pre>
+<h2>Troubleshooting</h2>
+<h3>Callback not firing</h3>
+<p><strong>Symptom:</strong> Event callback never executes.</p>
+<p><strong>Cause:</strong> Subscribed after the action occurred, or subscribed to wrong event type.</p>
+<p><strong>Solution:</strong> Subscribe before performing actions:</p>
+<pre><code class="language-typescript">// Wrong order
+graph.createNode(&#39;test&#39;)
+graph.on(&#39;nodeCreated&#39;, () =&gt; console.log(&#39;Created&#39;))  // Won&#39;t fire for &#39;test&#39;
+
+// Right order
+graph.on(&#39;nodeCreated&#39;, () =&gt; console.log(&#39;Created&#39;))
+graph.createNode(&#39;test&#39;)  // Callback fires
+</code></pre>
+<h3>Memory leak from unsubscribed listeners</h3>
+<p><strong>Symptom:</strong> Callbacks continue running after component unmount.</p>
+<p><strong>Cause:</strong> Forgot to call the unsubscribe function.</p>
+<p><strong>Solution:</strong> Always clean up in component lifecycle:</p>
+<pre><code class="language-typescript">// React example
+useEffect(() =&gt; {
+  const unsub = graph.on(&#39;nodeCreated&#39;, handleNodeCreated)
+  return () =&gt; unsub()  // Cleanup on unmount
+}, [])
+</code></pre>
+<h2>See Also</h2>
+<ul>
+<li><strong><a href="guide-saving-and-loading-graphs.html">Saving and Loading</a></strong> — Use events for incremental saves</li>
+<li><strong><a href="api-events.html">Events API</a></strong> — Full event reference</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adding Gates and Locked Doors - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Adding Gates and Locked Doors</h1>
+<p>Control which connections players can traverse by adding gates. Gates can require keys, check game conditions, hide passages, or provide custom blocked messages. This guide covers all gate types and how to use them.</p>
+<h2>Prerequisites</h2>
+<p>Before starting, you should:</p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Understand nodes and connections</a></li>
+<li>Have a graph with connected nodes</li>
+</ul>
+<h2>Overview</h2>
+<p>We&#39;ll add access control to connections by:</p>
+<ol>
+<li>Creating a basic locked gate with a key requirement</li>
+<li>Testing traversal with and without the key</li>
+<li>Exploring other gate types (hidden, conditional, one-way)</li>
+<li>Dynamically updating gates during gameplay</li>
+</ol>
+<h2>Step 1: Create a Locked Gate</h2>
+<p>Gates attach to existing connections. First, create nodes and connect them, then add the gate.</p>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+// Create rooms
+graph.createNode(&#39;hallway&#39;)
+graph.createNode(&#39;vault&#39;)
+
+// Connect them
+graph.connect(&#39;hallway&#39;, Direction.NORTH, &#39;vault&#39;)
+
+// Add a locked gate
+graph.setGate(&#39;hallway&#39;, Direction.NORTH, {
+  id: &#39;vault-door&#39;,
+  locked: true,
+  keyId: &#39;vault-key&#39;,
+  description: &#39;A massive steel door with a complex lock.&#39;
+})
+</code></pre>
+<p>The gate is now on the connection from hallway to vault going NORTH. Note that the reverse connection (vault to hallway going SOUTH) does not automatically get the same gate—gates are directional.</p>
+<h2>Step 2: Test Traversal</h2>
+<p>Check if a player can pass through the gate.</p>
+<pre><code class="language-typescript">// Without the key
+const blocked = graph.canTraverse(&#39;hallway&#39;, Direction.NORTH, {
+  inventory: []
+})
+console.log(blocked.allowed)  // false
+console.log(blocked.reason)   // &#39;locked&#39;
+console.log(blocked.gateId)   // &#39;vault-door&#39;
+
+// With the key
+const allowed = graph.canTraverse(&#39;hallway&#39;, Direction.NORTH, {
+  inventory: [&#39;vault-key&#39;]
+})
+console.log(allowed.allowed)  // true
+</code></pre>
+<p>The traversal context includes the player&#39;s inventory. If the key matches <code>keyId</code>, passage is allowed.</p>
+<h2>Step 3: Add Gate to Both Directions</h2>
+<p>If you want the gate to block travel in both directions, add it to both connections.</p>
+<pre><code class="language-typescript">const gateConfig = {
+  id: &#39;vault-door&#39;,
+  locked: true,
+  keyId: &#39;vault-key&#39;
+}
+
+graph.setGate(&#39;hallway&#39;, Direction.NORTH, gateConfig)
+graph.setGate(&#39;vault&#39;, Direction.SOUTH, gateConfig)
+</code></pre>
+<p>Now the door blocks entry AND exit until the player has the key.</p>
+<h2>Step 4: Update Gates Dynamically</h2>
+<p>Change gate state during gameplay—unlock doors, reveal passages.</p>
+<pre><code class="language-typescript">// Player uses the key to unlock the door permanently
+graph.updateGate(&#39;hallway&#39;, Direction.NORTH, { locked: false })
+
+// Now traversal works without the key
+const result = graph.canTraverse(&#39;hallway&#39;, Direction.NORTH, {
+  inventory: []
+})
+console.log(result.allowed)  // true
+</code></pre>
+<p>Use <code>updateGate()</code> to modify specific properties without replacing the entire gate.</p>
+<h2>Complete Example</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+// Set up rooms
+graph.createNode(&#39;entrance&#39;)
+graph.createNode(&#39;hallway&#39;)
+graph.createNode(&#39;vault&#39;)
+graph.createNode(&#39;secret-room&#39;)
+
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;hallway&#39;)
+graph.connect(&#39;hallway&#39;, Direction.NORTH, &#39;vault&#39;)
+graph.connect(&#39;hallway&#39;, Direction.EAST, &#39;secret-room&#39;)
+
+// Locked vault door
+graph.setGate(&#39;hallway&#39;, Direction.NORTH, {
+  id: &#39;vault-door&#39;,
+  locked: true,
+  keyId: &#39;vault-key&#39;,
+  blockedMessage: &#39;The vault door is locked tight.&#39;
+})
+
+// Hidden passage
+graph.setGate(&#39;hallway&#39;, Direction.EAST, {
+  id: &#39;hidden-passage&#39;,
+  hidden: true,
+  description: &#39;A section of wall that slides open.&#39;
+})
+
+// Test traversal
+const vaultResult = graph.canTraverse(&#39;hallway&#39;, Direction.NORTH, {
+  inventory: [&#39;vault-key&#39;]
+})
+console.log(&#39;Can enter vault:&#39;, vaultResult.allowed)  // true
+
+const secretResult = graph.canTraverse(&#39;hallway&#39;, Direction.EAST, {
+  discovered: [&#39;hidden-passage&#39;]
+})
+console.log(&#39;Can use secret passage:&#39;, secretResult.allowed)  // true
+</code></pre>
+<h2>Variations</h2>
+<h3>Hidden Passages</h3>
+<p>Passages that must be discovered before use.</p>
+<pre><code class="language-typescript">graph.setGate(&#39;library&#39;, Direction.SOUTH, {
+  id: &#39;bookcase-door&#39;,
+  hidden: true
+})
+
+// Blocked until discovered
+graph.canTraverse(&#39;library&#39;, Direction.SOUTH, { discovered: [] })
+// { allowed: false, reason: &#39;hidden&#39; }
+
+// After player finds it
+graph.canTraverse(&#39;library&#39;, Direction.SOUTH, { discovered: [&#39;bookcase-door&#39;] })
+// { allowed: true }
+</code></pre>
+<h3>Conditional Gates</h3>
+<p>Gates that check game flags (requires a flag store).</p>
+<pre><code class="language-typescript">const flagStore = {
+  check: (condition) =&gt; {
+    // Your game&#39;s condition evaluation
+    return gameState.flags[condition.check[0]] === condition.check[2]
+  }
+}
+
+const graph = createSpatialGraph({ flagStore })
+
+graph.createNode(&#39;bridge-start&#39;)
+graph.createNode(&#39;bridge-end&#39;)
+graph.connect(&#39;bridge-start&#39;, Direction.EAST, &#39;bridge-end&#39;)
+
+graph.setGate(&#39;bridge-start&#39;, Direction.EAST, {
+  id: &#39;drawbridge&#39;,
+  condition: { check: [&#39;bridge_lowered&#39;, &#39;==&#39;, true] },
+  blockedMessage: &#39;The drawbridge is raised. Find a way to lower it.&#39;
+})
+</code></pre>
+<h3>Custom Blocked Messages</h3>
+<p>Provide context-specific feedback.</p>
+<pre><code class="language-typescript">graph.setGate(&#39;throne-room&#39;, Direction.NORTH, {
+  id: &#39;royal-guard&#39;,
+  locked: true,
+  keyId: &#39;royal-seal&#39;,
+  blockedMessage: &#39;The guard crosses their spear. &quot;None may pass without the Royal Seal.&quot;&#39;
+})
+
+// When blocked, retrieve the message
+const result = graph.canTraverse(&#39;throne-room&#39;, Direction.NORTH, { inventory: [] })
+if (!result.allowed) {
+  const gate = graph.getGate(&#39;throne-room&#39;, Direction.NORTH)
+  console.log(gate?.blockedMessage)
+}
+</code></pre>
+<h3>Removing Gates</h3>
+<p>Open a previously gated connection.</p>
+<pre><code class="language-typescript">// Remove the gate entirely
+graph.removeGate(&#39;hallway&#39;, Direction.NORTH)
+
+// Connection remains, but no access control
+const result = graph.canTraverse(&#39;hallway&#39;, Direction.NORTH, { inventory: [] })
+console.log(result.allowed)  // true
+</code></pre>
+<h2>Troubleshooting</h2>
+<h3>Gate not blocking traversal</h3>
+<p><strong>Symptom:</strong> <code>canTraverse()</code> returns <code>allowed: true</code> even though you added a gate.</p>
+<p><strong>Cause:</strong> You might have added the gate to the wrong direction or node.</p>
+<p><strong>Solution:</strong> Verify the gate exists with <code>getGate()</code>:</p>
+<pre><code class="language-typescript">const gate = graph.getGate(&#39;hallway&#39;, Direction.NORTH)
+console.log(gate)  // Should show your gate, not null
+</code></pre>
+<h3>Key not working</h3>
+<p><strong>Symptom:</strong> Player has the key but gate still blocks.</p>
+<p><strong>Cause:</strong> The key ID in inventory doesn&#39;t match the gate&#39;s <code>keyId</code> exactly (case-sensitive).</p>
+<p><strong>Solution:</strong> Check both values:</p>
+<pre><code class="language-typescript">const gate = graph.getGate(&#39;hallway&#39;, Direction.NORTH)
+console.log(&#39;Gate keyId:&#39;, gate?.keyId)  // e.g., &#39;vault-key&#39;
+console.log(&#39;Player has:&#39;, context.inventory)  // Should include exact match
+</code></pre>
+<h3>Condition-based gate always blocks</h3>
+<p><strong>Symptom:</strong> Conditional gate blocks even when condition should be true.</p>
+<p><strong>Cause:</strong> No <code>flagStore</code> provided to the graph, or flag store&#39;s <code>check()</code> not returning true.</p>
+<p><strong>Solution:</strong> Ensure you pass a flagStore when creating the graph:</p>
+<pre><code class="language-typescript">const graph = createSpatialGraph({ flagStore: myFlagStore })
+</code></pre>
+<h2>See Also</h2>
+<ul>
+<li><strong><a href="concept-gates.html">Gates Concept</a></strong> — Understanding gate types</li>
+<li><strong><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></strong> — How gates affect routes</li>
+<li><strong><a href="api-gate-management.html">Gate Management API</a></strong> — Full method reference</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

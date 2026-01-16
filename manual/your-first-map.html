@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your First Map - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Your First Map</h1>
+<p>Build a small dungeon with connected rooms, a locked door, and pathfinding in about 5 minutes.</p>
+<p>By the end of this guide, you&#39;ll have a 4-room dungeon where players need a key to access the treasure room, and you&#39;ll know how to check if paths exist between locations.</p>
+<h2>What We&#39;re Building</h2>
+<p>A simple dungeon layout:</p>
+<pre><code>                    [Treasure Room]
+                          |
+                     (locked door)
+                          |
+[Guard Room] --EAST-- [Great Hall] --NORTH-- [Armory]
+</code></pre>
+<p>The treasure room requires a <code>brass-key</code> to enter.</p>
+<h2>Step 1: Create the Graph</h2>
+<p>Start by importing the library and creating an empty graph.</p>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+</code></pre>
+<p>The <code>createSpatialGraph()</code> function returns a new graph instance. All your rooms and connections will live here.</p>
+<h2>Step 2: Add Rooms</h2>
+<p>Create nodes for each location. Nodes need a unique ID, and you can attach metadata like names and descriptions.</p>
+<pre><code class="language-typescript">graph.createNode(&#39;guard-room&#39;, {
+  name: &#39;Guard Room&#39;,
+  description: &#39;A small room with weapon racks on the walls.&#39;
+})
+
+graph.createNode(&#39;great-hall&#39;, {
+  name: &#39;Great Hall&#39;,
+  description: &#39;A vast chamber with pillars reaching to the ceiling.&#39;
+})
+
+graph.createNode(&#39;armory&#39;, {
+  name: &#39;Armory&#39;,
+  description: &#39;Shields and swords line every surface.&#39;
+})
+
+graph.createNode(&#39;treasure-room&#39;, {
+  name: &#39;Treasure Room&#39;,
+  description: &#39;Gold coins glitter in the torchlight.&#39;
+})
+</code></pre>
+<p>Each call to <code>createNode()</code> registers a new location in the graph.</p>
+<h2>Step 3: Connect Rooms</h2>
+<p>Link rooms together using directions. Connections are bidirectional by default—connecting A to B also connects B to A in the opposite direction.</p>
+<pre><code class="language-typescript">// Guard Room &lt;-&gt; Great Hall (via EAST/WEST)
+graph.connect(&#39;guard-room&#39;, Direction.EAST, &#39;great-hall&#39;)
+
+// Great Hall &lt;-&gt; Armory (via NORTH/SOUTH)
+graph.connect(&#39;great-hall&#39;, Direction.NORTH, &#39;armory&#39;)
+
+// Great Hall &lt;-&gt; Treasure Room (via EAST/WEST)
+graph.connect(&#39;great-hall&#39;, Direction.EAST, &#39;treasure-room&#39;)
+</code></pre>
+<p>After these calls, a player in the Guard Room can go EAST to reach the Great Hall, and going WEST from the Great Hall returns to the Guard Room.</p>
+<h2>Step 4: Add a Locked Door</h2>
+<p>Make the treasure room require a key. Gates attach to existing connections and control who can pass.</p>
+<pre><code class="language-typescript">graph.setGate(&#39;great-hall&#39;, Direction.EAST, {
+  id: &#39;treasury-door&#39;,
+  locked: true,
+  keyId: &#39;brass-key&#39;,
+  description: &#39;A heavy iron door with a brass lock.&#39;
+})
+</code></pre>
+<p>Now the connection from Great Hall to Treasure Room is blocked unless the player has the <code>brass-key</code>.</p>
+<h2>Step 5: Test Traversal</h2>
+<p>Check if a player can move through the locked door, with and without the key.</p>
+<pre><code class="language-typescript">// Without the key
+const blocked = graph.canTraverse(&#39;great-hall&#39;, Direction.EAST, {
+  inventory: []
+})
+console.log(blocked.allowed)  // false
+console.log(blocked.reason)   // &#39;locked&#39;
+
+// With the key
+const allowed = graph.canTraverse(&#39;great-hall&#39;, Direction.EAST, {
+  inventory: [&#39;brass-key&#39;]
+})
+console.log(allowed.allowed)  // true
+</code></pre>
+<p>The <code>canTraverse()</code> method checks gates and returns whether movement is allowed, plus a reason if blocked.</p>
+<h2>Step 6: Find a Path</h2>
+<p>Use pathfinding to get the route from the guard room to the treasure room.</p>
+<pre><code class="language-typescript">// Path with the key
+const path = graph.findPath(&#39;guard-room&#39;, &#39;treasure-room&#39;, {
+  context: { inventory: [&#39;brass-key&#39;] }
+})
+console.log(path)  // [&#39;guard-room&#39;, &#39;great-hall&#39;, &#39;treasure-room&#39;]
+
+// Path without the key
+const noPath = graph.findPath(&#39;guard-room&#39;, &#39;treasure-room&#39;, {
+  context: { inventory: [] }
+})
+console.log(noPath)  // null (no valid path exists)
+</code></pre>
+<p>Pathfinding respects locked gates—it won&#39;t route through doors the player can&#39;t open.</p>
+<h2>The Complete Code</h2>
+<p>Here&#39;s everything together:</p>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+// Create the graph
+const graph = createSpatialGraph()
+
+// Add rooms
+graph.createNode(&#39;guard-room&#39;, {
+  name: &#39;Guard Room&#39;,
+  description: &#39;A small room with weapon racks on the walls.&#39;
+})
+graph.createNode(&#39;great-hall&#39;, {
+  name: &#39;Great Hall&#39;,
+  description: &#39;A vast chamber with pillars reaching to the ceiling.&#39;
+})
+graph.createNode(&#39;armory&#39;, {
+  name: &#39;Armory&#39;,
+  description: &#39;Shields and swords line every surface.&#39;
+})
+graph.createNode(&#39;treasure-room&#39;, {
+  name: &#39;Treasure Room&#39;,
+  description: &#39;Gold coins glitter in the torchlight.&#39;
+})
+
+// Connect rooms
+graph.connect(&#39;guard-room&#39;, Direction.EAST, &#39;great-hall&#39;)
+graph.connect(&#39;great-hall&#39;, Direction.NORTH, &#39;armory&#39;)
+graph.connect(&#39;great-hall&#39;, Direction.EAST, &#39;treasure-room&#39;)
+
+// Add locked door
+graph.setGate(&#39;great-hall&#39;, Direction.EAST, {
+  id: &#39;treasury-door&#39;,
+  locked: true,
+  keyId: &#39;brass-key&#39;,
+  description: &#39;A heavy iron door with a brass lock.&#39;
+})
+
+// Test traversal
+const canEnter = graph.canTraverse(&#39;great-hall&#39;, Direction.EAST, {
+  inventory: [&#39;brass-key&#39;]
+})
+console.log(&#39;Can enter treasury:&#39;, canEnter.allowed)  // true
+
+// Find path
+const path = graph.findPath(&#39;guard-room&#39;, &#39;treasure-room&#39;, {
+  context: { inventory: [&#39;brass-key&#39;] }
+})
+console.log(&#39;Path to treasure:&#39;, path)  // [&#39;guard-room&#39;, &#39;great-hall&#39;, &#39;treasure-room&#39;]
+</code></pre>
+<h2>What&#39;s Next?</h2>
+<p>Now that you have the basics:</p>
+<ul>
+<li><strong><a href="concept-nodes-and-connections.html">Understand nodes and connections better</a></strong> — Learn about metadata, one-way connections, and node removal</li>
+<li><strong><a href="guide-adding-gates-and-locked-doors.html">Add more gate types</a></strong> — Hidden passages, conditional gates, and custom blocked messages</li>
+<li><strong><a href="guide-pathfinding.html">Explore pathfinding options</a></strong> — Weighted costs, distance calculation, and reachability</li>
+<li><strong><a href="api-node-management.html">Browse the API</a></strong> — Full reference when you need details</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

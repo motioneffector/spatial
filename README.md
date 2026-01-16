@@ -19,7 +19,7 @@ A directional graph system for room-based spatial navigation in games and intera
 - **Event System** - React to graph changes in real-time
 - **Serialization** - Save and restore entire graph state
 
-[Read the full manual →](https://github.com/motioneffector/spatial/wiki)
+[Read the full manual →](https://motioneffector.github.io/spatial/manual/)
 
 ## Quick Start
 

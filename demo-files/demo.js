@@ -3,16 +3,13 @@
  * Imports exhibits and initializes them on page load
  */
 
+// Import library and expose globally for tests
+import * as Library from '../dist/index.js'
+window.Library = Library
+
 import { initDungeon, dungeonDemo } from './dungeon.js'
 import { initWorkshop, workshopDemo } from './workshop.js'
 import { initPathfinding, pathfindingDemo } from './pathfinding.js'
-
-// Verify library is loaded
-if (typeof window.Library === 'undefined') {
-  throw new Error(
-    'Library not loaded. Run `pnpm build` first, then serve this directory.'
-  )
-}
 
 // Expose demo APIs for tests.js
 window.dungeonDemo = dungeonDemo

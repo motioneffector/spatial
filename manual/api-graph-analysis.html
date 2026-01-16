@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Analysis API - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Graph Analysis API</h1>
+<p>Methods for analyzing graph structure, finding problems, and validating integrity.</p>
+<hr>
+<h2><code>getOrphans()</code></h2>
+<p>Returns nodes with no connections (neither incoming nor outgoing).</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getOrphans(): string[]
+</code></pre>
+<p><strong>Returns:</strong> <code>string[]</code> — Array of orphan node IDs</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.createNode(&#39;connected-1&#39;)
+graph.createNode(&#39;connected-2&#39;)
+graph.createNode(&#39;orphan&#39;)
+
+graph.connect(&#39;connected-1&#39;, Direction.NORTH, &#39;connected-2&#39;)
+
+const orphans = graph.getOrphans()
+console.log(orphans)  // [&#39;orphan&#39;]
+</code></pre>
+<hr>
+<h2><code>getDeadEnds()</code></h2>
+<p>Returns nodes with exactly one connection (one exit).</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getDeadEnds(): string[]
+</code></pre>
+<p><strong>Returns:</strong> <code>string[]</code> — Array of dead end node IDs</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">graph.createNode(&#39;entrance&#39;)
+graph.createNode(&#39;hallway&#39;)
+graph.createNode(&#39;treasury&#39;)
+
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;hallway&#39;)
+graph.connect(&#39;hallway&#39;, Direction.EAST, &#39;treasury&#39;)
+
+const deadEnds = graph.getDeadEnds()
+console.log(deadEnds)  // [&#39;entrance&#39;, &#39;treasury&#39;]
+// &#39;hallway&#39; has 2 exits (SOUTH and EAST)
+// &#39;entrance&#39; has 1 exit (NORTH)
+// &#39;treasury&#39; has 1 exit (WEST)
+</code></pre>
+<hr>
+<h2><code>getSubgraphs()</code></h2>
+<p>Returns groups of connected nodes. Multiple groups indicate disconnected areas.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getSubgraphs(): string[][]
+</code></pre>
+<p><strong>Returns:</strong> <code>string[][]</code> — Array of node ID arrays, one per connected group</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">// Two separate areas
+graph.createNode(&#39;island-1a&#39;)
+graph.createNode(&#39;island-1b&#39;)
+graph.createNode(&#39;island-2a&#39;)
+graph.createNode(&#39;island-2b&#39;)
+
+graph.connect(&#39;island-1a&#39;, Direction.NORTH, &#39;island-1b&#39;)
+graph.connect(&#39;island-2a&#39;, Direction.NORTH, &#39;island-2b&#39;)
+// No connection between islands
+
+const subgraphs = graph.getSubgraphs()
+console.log(subgraphs)
+// [
+//   [&#39;island-1a&#39;, &#39;island-1b&#39;],
+//   [&#39;island-2a&#39;, &#39;island-2b&#39;]
+// ]
+
+// Single connected graph
+graph.connect(&#39;island-1b&#39;, Direction.EAST, &#39;island-2a&#39;)
+const connected = graph.getSubgraphs()
+console.log(connected)
+// [[&#39;island-1a&#39;, &#39;island-1b&#39;, &#39;island-2a&#39;, &#39;island-2b&#39;]]
+</code></pre>
+<hr>
+<h2><code>validate()</code></h2>
+<p>Checks graph structural integrity.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">validate(): ValidationResult
+</code></pre>
+<p><strong>Returns:</strong> <code>ValidationResult</code> — Validation result with any errors</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">// Valid graph
+graph.createNode(&#39;a&#39;)
+graph.createNode(&#39;b&#39;)
+graph.connect(&#39;a&#39;, Direction.NORTH, &#39;b&#39;)
+
+const valid = graph.validate()
+console.log(valid)  // { valid: true }
+
+// After deserializing corrupted data
+const corrupted = graph.validate()
+console.log(corrupted)
+// {
+//   valid: false,
+//   errors: [&#39;Connection from &quot;a&quot; direction &quot;EAST&quot; to non-existent node &quot;missing&quot;&#39;]
+// }
+</code></pre>
+<hr>
+<h2>Types</h2>
+<h3><code>ValidationResult</code></h3>
+<p>Result of graph validation.</p>
+<pre><code class="language-typescript">interface ValidationResult {
+  valid: boolean
+  errors?: string[]
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>valid</code></td>
+<td><code>boolean</code></td>
+<td>Whether the graph is structurally valid</td>
+</tr>
+<tr>
+<td><code>errors</code></td>
+<td><code>string[]</code></td>
+<td>Array of error descriptions (if invalid)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Analysis Use Cases</h2>
+<h3>Development-Time Validation</h3>
+<p>Check maps during build:</p>
+<pre><code class="language-typescript">const orphans = graph.getOrphans()
+if (orphans.length &gt; 0) {
+  throw new Error(`Orphan rooms found: ${orphans.join(&#39;, &#39;)}`)
+}
+
+const subgraphs = graph.getSubgraphs()
+if (subgraphs.length &gt; 1) {
+  throw new Error(`Disconnected areas: ${subgraphs.length}`)
+}
+</code></pre>
+<h3>Player Exploration Stats</h3>
+<p>Track discovery progress:</p>
+<pre><code class="language-typescript">const totalRooms = graph.getAllNodes().length
+const deadEnds = graph.getDeadEnds()
+
+console.log(`Total rooms: ${totalRooms}`)
+console.log(`Dead ends: ${deadEnds.length}`)
+console.log(`Dead end ratio: ${(deadEnds.length / totalRooms * 100).toFixed(1)}%`)
+</code></pre>
+<h3>Post-Load Validation</h3>
+<p>Verify save data integrity:</p>
+<pre><code class="language-typescript">graph.deserialize(savedData)
+
+const result = graph.validate()
+if (!result.valid) {
+  console.error(&#39;Save file corrupted:&#39;, result.errors)
+  // Fallback to fresh graph
+}
+</code></pre>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

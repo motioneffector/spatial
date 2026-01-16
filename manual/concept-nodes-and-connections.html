@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nodes and Connections - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Nodes and Connections</h1>
+<p>Nodes represent locations in your game world—rooms, areas, tiles, or any place a player can occupy. Connections are the pathways between them. Together they form a directional graph that models spatial relationships.</p>
+<h2>How It Works</h2>
+<p>Think of it like a subway map. Stations are nodes, and the lines between them are connections. Each connection has a direction—&quot;the library is NORTH of the entrance.&quot; When you say the library is north of the entrance, you&#39;re also implicitly saying the entrance is south of the library.</p>
+<pre><code>[Entrance] --NORTH--&gt; [Library]
+[Library]  --SOUTH--&gt; [Entrance]  (created automatically)
+</code></pre>
+<p>The graph stores these relationships and lets you query them: &quot;What&#39;s north of here?&quot; &quot;How do I get from A to B?&quot; &quot;What exits does this room have?&quot;</p>
+<h2>Basic Usage</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+// Create nodes with IDs and optional metadata
+graph.createNode(&#39;entrance&#39;, { name: &#39;Entrance Hall&#39; })
+graph.createNode(&#39;library&#39;, { name: &#39;Library&#39; })
+
+// Connect them - bidirectional by default
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;library&#39;)
+
+// Query the relationship
+const destination = graph.getDestination(&#39;entrance&#39;, Direction.NORTH)
+console.log(destination) // &#39;library&#39;
+
+// Reverse connection exists automatically
+const reverse = graph.getDestination(&#39;library&#39;, Direction.SOUTH)
+console.log(reverse) // &#39;entrance&#39;
+</code></pre>
+<p>This creates two nodes and links them. Going NORTH from entrance reaches library; going SOUTH from library reaches entrance.</p>
+<h2>Key Points</h2>
+<ul>
+<li><strong>Node IDs must be unique</strong> — Attempting to create a node with a duplicate ID throws a <code>ValidationError</code>.</li>
+<li><strong>Connections are bidirectional by default</strong> — When you connect A→NORTH→B, the library automatically creates B→SOUTH→A. Disable this with <code>{ bidirectional: false }</code>.</li>
+<li><strong>Removing a node removes its connections</strong> — Deleting a node cleans up all connections to and from it, so you don&#39;t have dangling references.</li>
+<li><strong>Metadata is flexible</strong> — Store any properties you need: names, descriptions, item lists, flags, coordinates.</li>
+</ul>
+<h2>Examples</h2>
+<h3>One-Way Connections</h3>
+<p>Sometimes movement only works in one direction—a one-way door, a jump down a ledge, or a teleporter exit.</p>
+<pre><code class="language-typescript">// Player can jump down, but can&#39;t climb back up
+graph.connect(&#39;ledge&#39;, Direction.DOWN, &#39;pit&#39;, { bidirectional: false })
+
+// From ledge: can go DOWN to pit
+// From pit: cannot go UP to ledge
+</code></pre>
+<h3>Storing Custom Metadata</h3>
+<p>Nodes accept any properties. Use this for game-specific data.</p>
+<pre><code class="language-typescript">graph.createNode(&#39;shop&#39;, {
+  name: &#39;Magic Shop&#39;,
+  description: &#39;Potions bubble on dusty shelves.&#39;,
+  shopInventory: [&#39;health-potion&#39;, &#39;mana-potion&#39;],
+  ambientSound: &#39;bubbling.mp3&#39;,
+  lightLevel: 0.7
+})
+
+const node = graph.getNode(&#39;shop&#39;)
+console.log(node?.metadata.shopInventory) // [&#39;health-potion&#39;, &#39;mana-potion&#39;]
+</code></pre>
+<h3>Checking Available Exits</h3>
+<p>List all directions a player can go from a location.</p>
+<pre><code class="language-typescript">graph.createNode(&#39;hub&#39;)
+graph.createNode(&#39;north-wing&#39;)
+graph.createNode(&#39;east-wing&#39;)
+graph.createNode(&#39;basement&#39;)
+
+graph.connect(&#39;hub&#39;, Direction.NORTH, &#39;north-wing&#39;)
+graph.connect(&#39;hub&#39;, Direction.EAST, &#39;east-wing&#39;)
+graph.connect(&#39;hub&#39;, Direction.DOWN, &#39;basement&#39;)
+
+const exits = graph.getExits(&#39;hub&#39;)
+// [
+//   { direction: &#39;NORTH&#39;, target: &#39;north-wing&#39;, gate: null, cost: 1 },
+//   { direction: &#39;EAST&#39;, target: &#39;east-wing&#39;, gate: null, cost: 1 },
+//   { direction: &#39;DOWN&#39;, target: &#39;basement&#39;, gate: null, cost: 1 }
+// ]
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><strong><a href="concept-directions.html">Directions</a></strong> — The vocabulary of movement (NORTH, UP, custom directions)</li>
+<li><strong><a href="concept-gates.html">Gates</a></strong> — Controlling access on connections</li>
+<li><strong><a href="your-first-map.html">Your First Map</a></strong> — Practical tutorial using nodes and connections</li>
+<li><strong><a href="api-node-management.html">Node Management API</a></strong> — Full method reference</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

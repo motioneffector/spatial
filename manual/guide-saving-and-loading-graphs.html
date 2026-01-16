@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saving and Loading Graphs - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Saving and Loading Graphs</h1>
+<p>Persist graph state for game saves and restore it later. The library provides <code>serialize()</code> and <code>deserialize()</code> methods that produce JSON-compatible data.</p>
+<h2>Prerequisites</h2>
+<p>Before starting, you should:</p>
+<ul>
+<li>Have a working graph with nodes, connections, and gates</li>
+</ul>
+<h2>Overview</h2>
+<p>We&#39;ll handle persistence by:</p>
+<ol>
+<li>Serializing the graph to JSON-compatible data</li>
+<li>Storing the data (localStorage, file, database)</li>
+<li>Restoring the graph with deserialize</li>
+<li>Validating restored data</li>
+</ol>
+<h2>Step 1: Serialize the Graph</h2>
+<p>Call <code>serialize()</code> to get a plain object containing all graph state.</p>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+const graph = createSpatialGraph()
+
+// Build your graph
+graph.createNode(&#39;entrance&#39;, { name: &#39;Entrance Hall&#39; })
+graph.createNode(&#39;library&#39;, { name: &#39;Library&#39; })
+graph.connect(&#39;entrance&#39;, Direction.NORTH, &#39;library&#39;)
+graph.setGate(&#39;entrance&#39;, Direction.NORTH, {
+  id: &#39;library-door&#39;,
+  locked: true,
+  keyId: &#39;library-key&#39;
+})
+
+// Serialize to JSON-compatible object
+const data = graph.serialize()
+console.log(data)
+// {
+//   nodes: { entrance: {...}, library: {...} },
+//   connections: { entrance: { NORTH: {...} }, library: { SOUTH: {...} } }
+// }
+</code></pre>
+<p>The serialized data includes all nodes, connections, gates, metadata, tiles, layers, and zones.</p>
+<h2>Step 2: Store the Data</h2>
+<p>Convert to JSON string and save wherever your game stores data.</p>
+<pre><code class="language-typescript">// Convert to JSON string
+const json = JSON.stringify(data)
+
+// Browser localStorage
+localStorage.setItem(&#39;game-map&#39;, json)
+
+// Node.js file
+import { writeFileSync } from &#39;fs&#39;
+writeFileSync(&#39;save.json&#39;, json)
+
+// Send to server
+await fetch(&#39;/api/save&#39;, {
+  method: &#39;POST&#39;,
+  body: json,
+  headers: { &#39;Content-Type&#39;: &#39;application/json&#39; }
+})
+</code></pre>
+<h2>Step 3: Restore the Graph</h2>
+<p>Create a new graph and call <code>deserialize()</code> with the saved data.</p>
+<pre><code class="language-typescript">// Load the JSON
+const savedJson = localStorage.getItem(&#39;game-map&#39;)
+const savedData = JSON.parse(savedJson)
+
+// Create new graph and restore
+const restoredGraph = createSpatialGraph()
+restoredGraph.deserialize(savedData)
+
+// Graph is now identical to when it was saved
+console.log(restoredGraph.hasNode(&#39;entrance&#39;))  // true
+console.log(restoredGraph.getNode(&#39;library&#39;)?.metadata.name)  // &#39;Library&#39;
+
+const gate = restoredGraph.getGate(&#39;entrance&#39;, Direction.NORTH)
+console.log(gate?.locked)  // true
+</code></pre>
+<p>Note: <code>deserialize()</code> clears the graph first, so any existing nodes are removed.</p>
+<h2>Step 4: Validate Restored Data</h2>
+<p>After deserializing, use <code>validate()</code> to check for structural issues.</p>
+<pre><code class="language-typescript">const result = restoredGraph.validate()
+
+if (result.valid) {
+  console.log(&#39;Graph loaded successfully&#39;)
+} else {
+  console.error(&#39;Graph has issues:&#39;, result.errors)
+}
+</code></pre>
+<p>Validation catches issues like connections pointing to non-existent nodes (which might happen if save data is corrupted or from an older version).</p>
+<h2>Complete Example</h2>
+<pre><code class="language-typescript">import { createSpatialGraph, Direction } from &#39;@motioneffector/spatial&#39;
+
+// === SAVE GAME ===
+function saveGame(graph: SpatialGraph): string {
+  const data = graph.serialize()
+  const json = JSON.stringify(data, null, 2)  // Pretty print for debugging
+  localStorage.setItem(&#39;game-save&#39;, json)
+  return json
+}
+
+// === LOAD GAME ===
+function loadGame(): SpatialGraph | null {
+  const json = localStorage.getItem(&#39;game-save&#39;)
+  if (!json) {
+    console.log(&#39;No save found&#39;)
+    return null
+  }
+
+  try {
+    const data = JSON.parse(json)
+    const graph = createSpatialGraph()
+    graph.deserialize(data)
+
+    // Validate the loaded data
+    const validation = graph.validate()
+    if (!validation.valid) {
+      console.error(&#39;Save file corrupted:&#39;, validation.errors)
+      return null
+    }
+
+    console.log(&#39;Game loaded successfully&#39;)
+    return graph
+  } catch (error) {
+    console.error(&#39;Failed to load save:&#39;, error)
+    return null
+  }
+}
+
+// === USAGE ===
+const graph = createSpatialGraph()
+graph.createNode(&#39;start&#39;, { name: &#39;Starting Room&#39; })
+graph.createNode(&#39;end&#39;, { name: &#39;Final Room&#39; })
+graph.connect(&#39;start&#39;, Direction.NORTH, &#39;end&#39;)
+
+// Save
+saveGame(graph)
+
+// Later, load
+const restored = loadGame()
+if (restored) {
+  console.log(restored.getAllNodes())  // [&#39;start&#39;, &#39;end&#39;]
+}
+</code></pre>
+<h2>Variations</h2>
+<h3>Merging Saved State with Fresh Graph</h3>
+<p>Load saved state but add new content from a fresh template.</p>
+<pre><code class="language-typescript">function loadWithUpdates(savedJson: string, templateGraph: SpatialGraph) {
+  const graph = createSpatialGraph()
+  const savedData = JSON.parse(savedJson)
+
+  // Load saved state first
+  graph.deserialize(savedData)
+
+  // Add new nodes from template if they don&#39;t exist
+  const templateData = templateGraph.serialize()
+  for (const [id, nodeData] of Object.entries(templateData.nodes)) {
+    if (!graph.hasNode(id)) {
+      graph.createNode(id, nodeData.metadata)
+      // Also add connections from template for this node
+    }
+  }
+
+  return graph
+}
+</code></pre>
+<h3>Saving Only Changed State</h3>
+<p>Track what changed since last save (for incremental saves).</p>
+<pre><code class="language-typescript">const changedNodes = new Set&lt;string&gt;()
+
+graph.on(&#39;nodeCreated&#39;, (id) =&gt; changedNodes.add(id))
+graph.on(&#39;gateUpdated&#39;, (from) =&gt; changedNodes.add(from))
+
+function getChanges() {
+  const fullData = graph.serialize()
+  // Filter to only changed nodes
+  return {
+    nodes: Object.fromEntries(
+      Object.entries(fullData.nodes)
+        .filter(([id]) =&gt; changedNodes.has(id))
+    ),
+    connections: Object.fromEntries(
+      Object.entries(fullData.connections)
+        .filter(([id]) =&gt; changedNodes.has(id))
+    )
+  }
+}
+</code></pre>
+<h3>Handling Missing Nodes in Old Saves</h3>
+<p>Guard against save files from older versions.</p>
+<pre><code class="language-typescript">function loadWithMigration(savedJson: string) {
+  const graph = createSpatialGraph()
+  const data = JSON.parse(savedJson)
+
+  // Check version
+  if (!data.version || data.version &lt; 2) {
+    // Migrate old format
+    data.nodes = migrateOldNodes(data.nodes)
+  }
+
+  graph.deserialize(data)
+
+  // Add nodes that must exist
+  if (!graph.hasNode(&#39;spawn&#39;)) {
+    graph.createNode(&#39;spawn&#39;, { name: &#39;Spawn Point&#39; })
+  }
+
+  return graph
+}
+</code></pre>
+<h2>Troubleshooting</h2>
+<h3>deserialize throws ValidationError</h3>
+<p><strong>Symptom:</strong> <code>deserialize()</code> throws &quot;Invalid serialized data: missing nodes&quot;.</p>
+<p><strong>Cause:</strong> The data object is malformed or empty.</p>
+<p><strong>Solution:</strong> Check that the data has the expected structure:</p>
+<pre><code class="language-typescript">if (!data || !data.nodes) {
+  console.error(&#39;Invalid save data structure&#39;)
+  return
+}
+</code></pre>
+<h3>Gates not restored correctly</h3>
+<p><strong>Symptom:</strong> Gates exist after deserialize but have unexpected values.</p>
+<p><strong>Cause:</strong> Gate data was corrupted or the structure changed.</p>
+<p><strong>Solution:</strong> Verify gate data before use:</p>
+<pre><code class="language-typescript">const gate = graph.getGate(&#39;node&#39;, Direction.NORTH)
+if (gate &amp;&amp; typeof gate.locked !== &#39;boolean&#39;) {
+  console.warn(&#39;Gate has unexpected locked value:&#39;, gate.locked)
+}
+</code></pre>
+<h2>See Also</h2>
+<ul>
+<li><strong><a href="guide-reacting-to-graph-changes.html">Events</a></strong> — Track changes for incremental saves</li>
+<li><strong><a href="guide-analyzing-graph-structure.html">Graph Analysis</a></strong> — Validate graph structure</li>
+<li><strong><a href="api-serialization.html">Serialization API</a></strong> — Full method reference</li>
+</ul>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

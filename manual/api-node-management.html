@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Node Management API - @motioneffector/spatial</title>
+  <link rel="stylesheet" href="../demo-files/demo.css">
+  <link rel="stylesheet" href="manual.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1 class="header-title">@motioneffector/spatial</h1>
+      <p class="header-description">Documentation</p>
+      <nav class="header-links">
+        <a href="../index.html" class="header-link">Demo</a>
+        <a href="https://www.npmjs.com/package/@motioneffector/spatial" class="header-link">npm</a>
+        <a href="https://github.com/motioneffector/spatial" class="header-link">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="manual-layout">
+      <aside class="manual-sidebar">
+        <nav class="sidebar-nav">
+<p><strong><a href="index.html">@motioneffector/spatial</a></strong></p>
+<p><strong>Getting Started</strong></p>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="your-first-map.html">Your First Map</a></li>
+</ul>
+<p><strong>Core Concepts</strong></p>
+<ul>
+<li><a href="concept-nodes-and-connections.html">Nodes and Connections</a></li>
+<li><a href="concept-directions.html">Directions</a></li>
+<li><a href="concept-gates.html">Gates</a></li>
+<li><a href="concept-traversal-and-pathfinding.html">Traversal and Pathfinding</a></li>
+<li><a href="concept-spatial-features.html">Spatial Features</a></li>
+</ul>
+<p><strong>Guides</strong></p>
+<ul>
+<li><a href="guide-adding-gates-and-locked-doors.html">Adding Gates and Locked Doors</a></li>
+<li><a href="guide-pathfinding.html">Pathfinding</a></li>
+<li><a href="guide-working-with-layers.html">Working with Layers</a></li>
+<li><a href="guide-custom-directions.html">Custom Directions</a></li>
+<li><a href="guide-saving-and-loading-graphs.html">Saving and Loading Graphs</a></li>
+<li><a href="guide-reacting-to-graph-changes.html">Reacting to Graph Changes</a></li>
+<li><a href="guide-analyzing-graph-structure.html">Analyzing Graph Structure</a></li>
+</ul>
+<p><strong>API Reference</strong></p>
+<ul>
+<li><a href="api-graph-creation-and-types.html">Graph Creation and Types</a></li>
+<li><a href="api-node-management.html">Node Management</a></li>
+<li><a href="api-connection-management.html">Connection Management</a></li>
+<li><a href="api-gate-management.html">Gate Management</a></li>
+<li><a href="api-pathfinding.html">Pathfinding</a></li>
+<li><a href="api-spatial-features.html">Spatial Features</a></li>
+<li><a href="api-direction-utilities.html">Direction Utilities</a></li>
+<li><a href="api-graph-analysis.html">Graph Analysis</a></li>
+<li><a href="api-events.html">Events</a></li>
+<li><a href="api-serialization.html">Serialization</a></li>
+</ul>
+
+        </nav>
+      </aside>
+
+      <main class="manual-content">
+        <article class="manual-article">
+<h1>Node Management API</h1>
+<p>Methods for creating, reading, updating, and deleting nodes in the graph.</p>
+<hr>
+<h2><code>createNode()</code></h2>
+<p>Creates a new node with the given ID and optional metadata.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">createNode(id: string, options?: CreateNodeOptions): void
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>Unique identifier for the node</td>
+</tr>
+<tr>
+<td><code>options</code></td>
+<td><code>CreateNodeOptions</code></td>
+<td>No</td>
+<td>Node configuration and metadata</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>void</code></p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">// Simple node
+graph.createNode(&#39;entrance&#39;)
+
+// Node with metadata
+graph.createNode(&#39;library&#39;, {
+  name: &#39;Ancient Library&#39;,
+  description: &#39;Dusty tomes line the walls.&#39;,
+  customProp: &#39;any value&#39;
+})
+
+// Node with tiles and layer
+graph.createNode(&#39;great-hall&#39;, {
+  name: &#39;Great Hall&#39;,
+  tiles: [{ x: 0, y: 0 }, { x: 1, y: 0 }],
+  layer: 2
+})
+</code></pre>
+<p><strong>Throws:</strong></p>
+<ul>
+<li><code>ValidationError</code> — When node ID is empty or already exists</li>
+</ul>
+<hr>
+<h2><code>getNode()</code></h2>
+<p>Retrieves node data by ID.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getNode(id: string): NodeData | null
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>The node ID to look up</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>NodeData | null</code> — The node data, or null if not found</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">const node = graph.getNode(&#39;library&#39;)
+if (node) {
+  console.log(node.id)              // &#39;library&#39;
+  console.log(node.metadata.name)   // &#39;Ancient Library&#39;
+  console.log(node.layer)           // 1 (default)
+}
+</code></pre>
+<hr>
+<h2><code>hasNode()</code></h2>
+<p>Checks if a node exists.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">hasNode(id: string): boolean
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>The node ID to check</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>boolean</code> — True if node exists</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">if (graph.hasNode(&#39;secret-room&#39;)) {
+  console.log(&#39;Secret room exists!&#39;)
+}
+</code></pre>
+<hr>
+<h2><code>removeNode()</code></h2>
+<p>Removes a node and all its connections.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">removeNode(id: string): NodeData
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>Yes</td>
+<td>The node ID to remove</td>
+</tr>
+</tbody></table>
+<p><strong>Returns:</strong> <code>NodeData</code> — The removed node&#39;s data</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">const removed = graph.removeNode(&#39;old-room&#39;)
+console.log(&#39;Removed:&#39;, removed.metadata.name)
+
+// All connections to/from this node are also removed
+</code></pre>
+<p><strong>Throws:</strong></p>
+<ul>
+<li><code>ValidationError</code> — When node does not exist</li>
+</ul>
+<hr>
+<h2><code>getAllNodes()</code></h2>
+<p>Returns all node IDs in the graph.</p>
+<p><strong>Signature:</strong></p>
+<pre><code class="language-typescript">getAllNodes(): string[]
+</code></pre>
+<p><strong>Returns:</strong> <code>string[]</code> — Array of all node IDs</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">const nodes = graph.getAllNodes()
+console.log(`Graph has ${nodes.length} nodes`)
+nodes.forEach(id =&gt; console.log(`  - ${id}`))
+</code></pre>
+<hr>
+<h2>Types</h2>
+<h3><code>CreateNodeOptions</code></h3>
+<p>Options for creating a node.</p>
+<pre><code class="language-typescript">interface CreateNodeOptions {
+  name?: string
+  description?: string
+  tiles?: TilePosition[]
+  layer?: number
+  [key: string]: unknown
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Display name for the node</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Description text</td>
+</tr>
+<tr>
+<td><code>tiles</code></td>
+<td><code>TilePosition[]</code></td>
+<td>No</td>
+<td>Grid positions this node occupies</td>
+</tr>
+<tr>
+<td><code>layer</code></td>
+<td><code>number</code></td>
+<td>No</td>
+<td>Vertical layer. Default: <code>1</code></td>
+</tr>
+<tr>
+<td><code>[key]</code></td>
+<td><code>unknown</code></td>
+<td>No</td>
+<td>Any additional custom properties</td>
+</tr>
+</tbody></table>
+<h3><code>NodeData</code></h3>
+<p>Data structure for a node.</p>
+<pre><code class="language-typescript">interface NodeData {
+  id: string
+  metadata: NodeMetadata
+  tiles?: TilePosition[]
+  layer: number
+  zone?: string
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>The node&#39;s unique identifier</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td><code>NodeMetadata</code></td>
+<td>All metadata properties (name, description, custom)</td>
+</tr>
+<tr>
+<td><code>tiles</code></td>
+<td><code>TilePosition[]</code></td>
+<td>Grid positions (if specified)</td>
+</tr>
+<tr>
+<td><code>layer</code></td>
+<td><code>number</code></td>
+<td>Vertical layer</td>
+</tr>
+<tr>
+<td><code>zone</code></td>
+<td><code>string</code></td>
+<td>Zone ID (if assigned)</td>
+</tr>
+</tbody></table>
+<h3><code>TilePosition</code></h3>
+<p>Grid coordinates for a tile.</p>
+<pre><code class="language-typescript">interface TilePosition {
+  x: number
+  y: number
+  layer?: number
+}
+</code></pre>
+<h3><code>NodeMetadata</code></h3>
+<p>Flexible metadata container.</p>
+<pre><code class="language-typescript">type NodeMetadata = Record&lt;string, unknown&gt;
+</code></pre>
+
+        </article>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
