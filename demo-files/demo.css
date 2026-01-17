@@ -227,6 +227,11 @@ body {
    BUTTONS
    ============================================ */
 
+/* Base button style - ensure all buttons have pointer cursor */
+button, .btn {
+  cursor: pointer !important;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
