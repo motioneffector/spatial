@@ -1,6 +1,6 @@
 {
   "name": "@motioneffector/spatial",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Directional graph for room-based spatial navigation",
   "author": "motioneffector",
   "license": "MIT",
