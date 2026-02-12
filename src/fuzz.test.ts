@@ -403,11 +403,7 @@ describe('Fuzz: Direction.parse', () => {
       }
     })
 
-    if (THOROUGH_MODE) {
-      console.log(
-        `Completed ${result.iterations} iterations in ${result.durationMs}ms`
-      )
-    }
+    expect(result.iterations).toBeGreaterThan(0)
   })
 
   it('is case-insensitive for valid inputs', () => {
@@ -515,9 +511,8 @@ describe('Fuzz: createNode', () => {
         graph.createNode('', {})
         throw new Error('Should have thrown ValidationError for empty ID')
       } catch (e) {
-        if (!(e instanceof ValidationError)) {
-          throw new Error(`Wrong error type: ${e?.constructor?.name}`)
-        }
+        expect(e).toBeInstanceOf(ValidationError)
+        expect((e as ValidationError).message).toContain('cannot be empty')
       }
     })
   })
@@ -533,9 +528,8 @@ describe('Fuzz: createNode', () => {
         graph.createNode(id, {})
         throw new Error('Should have thrown ValidationError for duplicate ID')
       } catch (e) {
-        if (!(e instanceof ValidationError)) {
-          throw new Error(`Wrong error type: ${e?.constructor?.name}`)
-        }
+        expect(e).toBeInstanceOf(ValidationError)
+        expect((e as ValidationError).message).toContain('already exists')
       }
     })
   })
@@ -581,12 +575,12 @@ describe('Fuzz: createNode', () => {
 
       try {
         graph.createNode(id, { tiles })
-        // Valid tiles should work
+        // Valid tiles should work - verify node was created
+        expect(graph.hasNode(id)).toBe(true)
       } catch (e) {
         // Some invalid tiles might throw ValidationError, which is ok
-        if (!(e instanceof ValidationError)) {
-          throw new Error(`Unexpected error type: ${e?.constructor?.name}`)
-        }
+        expect(e).toBeInstanceOf(ValidationError)
+        expect((e as ValidationError).message).toBeTruthy()
       }
     })
   })
@@ -640,9 +634,8 @@ describe('Fuzz: connect', () => {
         graph.connect('a', 'NORTH', 'non-existent')
         throw new Error('Should have thrown ValidationError')
       } catch (e) {
-        if (!(e instanceof ValidationError)) {
-          throw new Error(`Wrong error type: ${e?.constructor?.name}`)
-        }
+        expect(e).toBeInstanceOf(ValidationError)
+        expect((e as ValidationError).message).toContain('does not exist')
       }
     })
   })
@@ -701,12 +694,12 @@ describe('Fuzz: connect', () => {
 
       try {
         graph.connect(id1, 'NORTH', id2, { cost })
-        // Valid costs should work
+        // Valid costs should work - verify connection was created
+        expect(graph.getConnection(id1, 'NORTH')?.target).toBe(id2)
       } catch (e) {
         // Invalid costs might throw ValidationError
-        if (!(e instanceof ValidationError) && !(e instanceof SpatialError)) {
-          throw new Error(`Unexpected error type: ${e?.constructor?.name}`)
-        }
+        expect(e).toBeInstanceOf(SpatialError)
+        expect((e as SpatialError).message).toBeTruthy()
       }
     })
   })
@@ -724,12 +717,12 @@ describe('Fuzz: connect', () => {
 
       try {
         graph.connect(id1, 'NORTH', id2, { gate })
-        // Valid gates should work
+        // Valid gates should work - verify connection was created
+        expect(graph.getConnection(id1, 'NORTH')?.target).toBe(id2)
       } catch (e) {
         // Invalid gates might throw ValidationError
-        if (!(e instanceof ValidationError)) {
-          throw new Error(`Unexpected error type: ${e?.constructor?.name}`)
-        }
+        expect(e).toBeInstanceOf(ValidationError)
+        expect((e as ValidationError).message).toBeTruthy()
       }
     })
   })
@@ -1025,8 +1018,9 @@ describe('Fuzz: findPath', () => {
 
         try {
           graph.connect(from, dir, to)
-        } catch {
-          // Ignore duplicate direction errors
+        } catch (e) {
+          // Duplicate direction errors are expected
+          expect(e).toBeInstanceOf(Error)
         }
       }
 
@@ -1153,9 +1147,8 @@ describe('Fuzz: serialize/deserialize', () => {
         }
       } catch (e) {
         // Invalid gates might throw, which is ok
-        if (!(e instanceof ValidationError)) {
-          throw e
-        }
+        expect(e).toBeInstanceOf(ValidationError)
+        expect((e as ValidationError).message).toBeTruthy()
       }
     })
   })
@@ -1169,14 +1162,9 @@ describe('Fuzz: serialize/deserialize', () => {
         graph.deserialize(malformed as any)
         // If it didn't throw, the data might have been coincidentally valid
       } catch (e) {
-        // Should throw ValidationError or SpatialError, not generic Error
-        if (
-          !(e instanceof ValidationError) &&
-          !(e instanceof SpatialError) &&
-          !(e instanceof Error)
-        ) {
-          throw new Error(`Unexpected error type: ${e?.constructor?.name}`)
-        }
+        // Should throw ValidationError or SpatialError, or a standard Error
+        expect(e).toBeInstanceOf(Error)
+        expect((e as Error).message).toBeTruthy()
       }
     })
   })
@@ -1388,9 +1376,8 @@ describe('Fuzz: setGate/updateGate', () => {
         graph.setGate(id, 'NORTH', { id: 'gate' })
         throw new Error('Should have thrown ValidationError for non-existent connection')
       } catch (e) {
-        if (!(e instanceof ValidationError)) {
-          throw new Error(`Wrong error type: ${e?.constructor?.name}`)
-        }
+        expect(e).toBeInstanceOf(ValidationError)
+        expect((e as ValidationError).message).toContain('does not exist')
       }
     })
   })
@@ -1437,9 +1424,8 @@ describe('Fuzz: setGate/updateGate', () => {
         graph.updateGate(id1, 'NORTH', { description: 'Updated' })
         throw new Error('Should have thrown ValidationError for non-existent gate')
       } catch (e) {
-        if (!(e instanceof ValidationError)) {
-          throw new Error(`Wrong error type: ${e?.constructor?.name}`)
-        }
+        expect(e).toBeInstanceOf(ValidationError)
+        expect((e as ValidationError).message).toContain('does not exist')
       }
     })
   })
@@ -1565,8 +1551,9 @@ describe('Fuzz: getReachable', () => {
 
         try {
           graph.connect(from, dir, to)
-        } catch {
-          // Ignore errors
+        } catch (e) {
+          // Connection errors are expected for duplicate directions
+          expect(e).toBeInstanceOf(Error)
         }
       }
 
@@ -1662,9 +1649,8 @@ describe('Fuzz: State Machine', () => {
           }
         } catch (e) {
           // Operations might throw ValidationError, which is ok
-          if (!(e instanceof ValidationError) && !(e instanceof SpatialError)) {
-            throw e
-          }
+          expect(e).toBeInstanceOf(SpatialError)
+          expect((e as SpatialError).message).toBeTruthy()
         }
       }
 
@@ -1803,11 +1789,8 @@ describe('Fuzz: Performance Stress', () => {
             const dir = directions[
               (j + k) % directions.length
             ] as DirectionType
-            try {
-              graph.connect(nodeIds[j], dir, nodeIds[k])
-            } catch {
-              // Ignore duplicate direction errors
-            }
+            // Some connects may overwrite existing connections; this is expected behavior
+            graph.connect(nodeIds[j], dir, nodeIds[k])
           }
         }
       }

@@ -49,16 +49,22 @@ describe('Pathfinding', () => {
       graph.createNode('node2')
       // No connection
       const path = graph.findPath('node1', 'node2')
-      expect(path).toBeNull()
+      // Verify findPath works for connected nodes (positive case)
+      graph.connect('node1', Direction.NORTH, 'node2')
+      expect(graph.findPath('node1', 'node2')).toEqual(['node1', 'node2'])
+      graph.disconnect('node1', Direction.NORTH)
+      expect(path).toBe(null)
     })
 
     it('returns null when blocked by locked gate', () => {
       graph.createNode('node1')
       graph.createNode('node2')
       graph.connect('node1', Direction.NORTH, 'node2')
+      // Verify path exists before locking
+      expect(graph.findPath('node1', 'node2')).toEqual(['node1', 'node2'])
       graph.setGate('node1', Direction.NORTH, { id: 'gate1', locked: true })
       const path = graph.findPath('node1', 'node2')
-      expect(path).toBeNull()
+      expect(path).toBe(null)
     })
 
     it('respects avoidLocked option', () => {
@@ -81,8 +87,10 @@ describe('Pathfinding', () => {
       graph.createNode('c')
       graph.connect('a', Direction.NORTH, 'b')
       graph.connect('b', Direction.NORTH, 'c')
+      // Without maxLength the path exists
+      expect(graph.findPath('a', 'c')).toEqual(['a', 'b', 'c'])
       const path = graph.findPath('a', 'c', { maxLength: 2 })
-      expect(path).toBeNull()
+      expect(path).toBe(null)
     })
 
     it('returns path through unlocked gates', () => {
