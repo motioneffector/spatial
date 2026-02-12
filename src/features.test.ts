@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createSpatialGraph } from './graph'
 import { Direction, registerCustomDirection } from './direction'
 import { ValidationError } from './errors'
-import type { SpatialGraph } from './types'
+import type { SpatialGraph, TilePosition } from './types'
 
 describe('Multi-Tile Nodes', () => {
   let graph: SpatialGraph
@@ -32,6 +32,10 @@ describe('Multi-Tile Nodes', () => {
       })
       const tiles = graph.getTiles('node1')
       expect(tiles).toHaveLength(3)
+      expect((tiles[0] as TilePosition).x).toBe(0)
+      expect((tiles[0] as TilePosition).y).toBe(0)
+      expect((tiles[1] as TilePosition).x).toBe(1)
+      expect((tiles[2] as TilePosition).y).toBe(1)
     })
 
     it('validates tile coordinates are numbers', () => {
@@ -40,8 +44,6 @@ describe('Multi-Tile Nodes', () => {
         tiles: [{ x: 0, y: 0 }],
       })
       const tiles = graph.getTiles('node1')
-      expect(typeof tiles[0]?.x).toBe('number')
-      expect(typeof tiles[0]?.y).toBe('number')
       expect(tiles[0]?.x).toBe(0)
       expect(tiles[0]?.y).toBe(0)
     })
@@ -54,7 +56,9 @@ describe('Multi-Tile Nodes', () => {
     })
 
     it('returns null for empty tile', () => {
-      expect(graph.getNodeAt(10, 10)).toBeNull()
+      graph.createNode('occupied', { tiles: [{ x: 5, y: 3 }] })
+      expect(graph.getNodeAt(5, 3)).toBe('occupied')
+      expect(graph.getNodeAt(10, 10)).toBe(null)
     })
 
     it('returns correct node for any tile of multi-tile node', () => {
@@ -77,9 +81,14 @@ describe('Multi-Tile Nodes', () => {
   })
 
   describe('getTiles()', () => {
-    it('returns empty array for node without tiles', () => {
-      graph.createNode('node1')
-      expect(graph.getTiles('node1')).toEqual([])
+    it('returns tiles matching what was provided to createNode', () => {
+      graph.createNode('noTiles')
+      graph.createNode('hasTiles', { tiles: [{ x: 1, y: 2 }] })
+      const noTilesResult = graph.getTiles('noTiles')
+      expect(noTilesResult).toStrictEqual([])
+      const tilesWithData = graph.getTiles('hasTiles')
+      expect(tilesWithData).toHaveLength(1)
+      expect((tilesWithData[0] as TilePosition).x).toBe(1)
     })
 
     it('returns all tiles for multi-tile node', () => {
@@ -91,16 +100,17 @@ describe('Multi-Tile Nodes', () => {
       })
       const tiles = graph.getTiles('node1')
       expect(tiles).toHaveLength(2)
+      expect((tiles[0] as TilePosition).x).toBe(0)
+      expect((tiles[1] as TilePosition).x).toBe(1)
     })
 
     it('tiles include x and y properties', () => {
       graph.createNode('node1', { tiles: [{ x: 5, y: 3 }] })
       const tiles = graph.getTiles('node1')
-      expect(tiles[0]).toBeDefined()
       expect(tiles[0]?.x).toBe(5)
       expect(tiles[0]?.y).toBe(3)
-      expect(tiles[0]).toHaveProperty('x')
-      expect(tiles[0]).toHaveProperty('y')
+      expect(tiles[0]).toHaveProperty('x', 5)
+      expect(tiles[0]).toHaveProperty('y', 3)
     })
   })
 
@@ -139,7 +149,9 @@ describe('Multi-Tile Nodes', () => {
 
     it('returns null for node without tiles', () => {
       graph.createNode('node1')
-      expect(graph.getBounds('node1')).toBeNull()
+      graph.createNode('withTiles', { tiles: [{ x: 1, y: 2 }] })
+      expect(graph.getBounds('withTiles')).toEqual({ minX: 1, maxX: 1, minY: 2, maxY: 2 })
+      expect(graph.getBounds('node1')).toBe(null)
     })
   })
 
@@ -291,7 +303,7 @@ describe('Zones', () => {
     })
 
     it('throws ValidationError for non-existent node', () => {
-      expect(() => graph.setZone('nonexistent', 'zone1')).toThrow(ValidationError)
+      expect(() => graph.setZone('nonexistent', 'zone1')).toThrow(/does not exist/)
     })
   })
 
@@ -302,13 +314,17 @@ describe('Zones', () => {
     })
 
     it('returns null for node without zone', () => {
-      expect(graph.getZone('node1')).toBeNull()
+      graph.setZone('node2', 'zone2')
+      expect(graph.getZone('node2')).toBe('zone2')
+      expect(graph.getZone('node1')).toBe(null)
     })
   })
 
   describe('getNodesInZone()', () => {
     it('returns empty array for empty zone', () => {
-      expect(graph.getNodesInZone('zone1')).toEqual([])
+      graph.setZone('node1', 'zone2')
+      expect(graph.getNodesInZone('zone2')).toContain('node1')
+      expect(graph.getNodesInZone('zone1')).toStrictEqual([])
     })
 
     it('returns all nodes in zone', () => {
@@ -332,6 +348,7 @@ describe('Zones', () => {
   describe('removeZone()', () => {
     it('removes zone from node', () => {
       graph.setZone('node1', 'zone1')
+      expect(graph.getZone('node1')).toBe('zone1')
       graph.removeZone('node1')
       expect(graph.getZone('node1')).toBeNull()
     })
@@ -368,7 +385,9 @@ describe('Custom Directions', () => {
     it('registers direction with no opposite', () => {
       const WARP = 'WARP' as any
       graph.registerDirection('WARP', { opposite: null })
-      expect(Direction.opposite('WARP' as any)).toBeNull()
+      // Verify a known direction still has a proper opposite
+      expect(Direction.opposite('NORTH')).toBe('SOUTH')
+      expect(Direction.opposite('WARP' as any)).toBe(null)
     })
 
     it('new direction works in connect()', () => {
@@ -421,8 +440,13 @@ describe('Graph Analysis', () => {
     it('returns empty array when all nodes connected', () => {
       graph.createNode('node1')
       graph.createNode('node2')
+      // Before connecting, both are orphans
+      const orphansBefore = graph.getOrphans()
+      expect(orphansBefore).toHaveLength(2)
+      expect(orphansBefore).toContain('node1')
+      expect(orphansBefore).toContain('node2')
       graph.connect('node1', Direction.NORTH, 'node2')
-      expect(graph.getOrphans()).toEqual([])
+      expect(graph.getOrphans()).toStrictEqual([])
     })
   })
 
@@ -444,14 +468,13 @@ describe('Graph Analysis', () => {
       graph.createNode('b')
       graph.createNode('c')
       // Create a cycle where each node has 2+ connections
-      // a: NORTH->b (and reverse SOUTH from b), NORTH<-c's SOUTH reverse
-      // b: SOUTH->a, NORTH->c (and reverse SOUTH from c)
-      // c: SOUTH->b, SOUTH->a
-      // Using SOUTH for c->a to avoid overwriting c's WEST connection
       graph.connect('a', Direction.NORTH, 'b')
       graph.connect('b', Direction.NORTH, 'c')
+      // Before closing the cycle, a and c are dead ends (1 connection each)
+      expect(graph.getDeadEnds()).toContain('a')
+      expect(graph.getDeadEnds()).toContain('c')
       graph.connect('c', Direction.EAST, 'a')
-      expect(graph.getDeadEnds()).toEqual([])
+      expect(graph.getDeadEnds()).toStrictEqual([])
     })
   })
 
@@ -478,6 +501,10 @@ describe('Graph Analysis', () => {
       graph.connect('c', Direction.NORTH, 'd')
       const subgraphs = graph.getSubgraphs()
       expect(subgraphs).toHaveLength(2)
+      const sub1 = subgraphs.find(s => s.includes('a')) as string[]
+      const sub2 = subgraphs.find(s => s.includes('c')) as string[]
+      expect(sub1).toContain('b')
+      expect(sub2).toContain('d')
     })
 
     it('each subgraph contains connected nodes', () => {
@@ -513,7 +540,9 @@ describe('Graph Analysis', () => {
       const data = graph.serialize()
 
       // Corrupt the data: add a connection to non-existent node
-      data.connections['a'] = data.connections['a'] ?? {} as Record<string, any>
+      if (!data.connections['a']) {
+        data.connections['a'] = {} as Record<string, any>
+      }
       data.connections['a'][Direction.EAST] = {
         target: 'nonexistent',
         direction: Direction.EAST,
@@ -553,9 +582,8 @@ describe('Graph Analysis', () => {
       // validate() should return errors array with descriptions
       const result = graph2.validate()
       expect(result.valid).toBe(false)
-      expect(result.errors).toBeDefined()
-      expect(Array.isArray(result.errors)).toBe(true)
-      expect(result.errors!.length).toBeGreaterThan(0)
+      expect(result.errors).toEqual(expect.arrayContaining([expect.stringContaining('missing_node')]))
+      expect(result.errors!).toHaveLength(1)
       expect(result.errors![0]).toContain('missing_node')
     })
   })
@@ -690,8 +718,13 @@ describe('Events', () => {
 
   describe('Event Subscription', () => {
     it('on() returns unsubscribe function', () => {
-      const unsub = graph.on('nodeCreated', () => {})
-      expect(typeof unsub).toBe('function')
+      const callback = vi.fn()
+      const unsub = graph.on('nodeCreated', callback)
+      graph.createNode('testNode')
+      expect(callback).toHaveBeenCalledTimes(1)
+      unsub()
+      graph.createNode('testNode2')
+      expect(callback).toHaveBeenCalledTimes(1)
     })
 
     it('unsubscribe stops event firing', () => {
@@ -727,15 +760,16 @@ describe('Serialization', () => {
       graph.createNode('node1')
       const data = graph.serialize()
       const json = JSON.stringify(data)
-      expect(JSON.parse(json)).toBeDefined()
+      const parsed = JSON.parse(json)
+      expect(parsed.nodes.node1.id).toBe('node1')
     })
 
     it('includes all nodes', () => {
       graph.createNode('node1')
       graph.createNode('node2')
       const data = graph.serialize()
-      expect(data.nodes.node1).toBeDefined()
-      expect(data.nodes.node2).toBeDefined()
+      expect(data.nodes.node1.id).toBe('node1')
+      expect(data.nodes.node2.id).toBe('node2')
     })
 
     it('includes all connections', () => {
@@ -743,7 +777,7 @@ describe('Serialization', () => {
       graph.createNode('node2')
       graph.connect('node1', Direction.NORTH, 'node2')
       const data = graph.serialize()
-      expect(data.connections.node1?.[Direction.NORTH]).toBeDefined()
+      expect(data.connections.node1?.[Direction.NORTH]?.target).toBe('node2')
     })
 
     it('includes all gates', () => {
@@ -752,7 +786,8 @@ describe('Serialization', () => {
       graph.connect('node1', Direction.NORTH, 'node2')
       graph.setGate('node1', Direction.NORTH, { id: 'gate1', locked: true })
       const data = graph.serialize()
-      expect(data.connections.node1?.[Direction.NORTH]?.gate).toBeDefined()
+      expect(data.connections.node1?.[Direction.NORTH]?.gate?.id).toBe('gate1')
+      expect(data.connections.node1?.[Direction.NORTH]?.gate?.locked).toBe(true)
     })
 
     it('includes node metadata', () => {
@@ -836,7 +871,7 @@ describe('Serialization', () => {
     })
 
     it('throws ValidationError for invalid data', () => {
-      expect(() => graph.deserialize({} as any)).toThrow(ValidationError)
+      expect(() => graph.deserialize({} as any)).toThrow(/missing nodes/)
     })
   })
 
@@ -882,7 +917,8 @@ describe('Integration with @motioneffector/flags', () => {
     it('accepts flagStore in options', () => {
       const flagStore = { check: () => true }
       const graph = createSpatialGraph({ flagStore })
-      expect(graph).toBeDefined()
+      graph.createNode('test')
+      expect(graph.hasNode('test')).toBe(true)
     })
 
     it('gate conditions evaluated against flagStore', () => {
@@ -988,12 +1024,16 @@ describe('Edge Cases', () => {
   })
 
   describe('Empty Graph', () => {
-    it('getAllNodes returns empty array', () => {
-      expect(graph.getAllNodes()).toEqual([])
+    it('getAllNodes returns empty array for new graph and non-empty after adding node', () => {
+      expect(graph.getAllNodes()).toStrictEqual([])
+      graph.createNode('a')
+      expect(graph.getAllNodes()).toEqual(['a'])
     })
 
-    it('getOrphans returns empty array', () => {
-      expect(graph.getOrphans()).toEqual([])
+    it('getOrphans returns empty array for new graph and non-empty after adding unconnected node', () => {
+      expect(graph.getOrphans()).toStrictEqual([])
+      graph.createNode('a')
+      expect(graph.getOrphans()).toEqual(['a'])
     })
 
     it('serialize works on empty graph', () => {
@@ -1028,7 +1068,10 @@ describe('Edge Cases', () => {
       for (let i = 0; i < 1000; i++) {
         graph.createNode(`node${i}`)
       }
-      expect(graph.getAllNodes()).toHaveLength(1000)
+      const allNodes = graph.getAllNodes()
+      expect(allNodes).toHaveLength(1000)
+      expect(allNodes).toContain('node0')
+      expect(allNodes).toContain('node999')
     })
 
     it('handles 10000 connections', () => {
@@ -1055,9 +1098,12 @@ describe('Edge Cases', () => {
       }
       // Verify connections were actually created
       expect(count).toBe(10000)
-      // Verify graph still works by sampling some connections
-      expect(graph.getConnection('node0', Direction.NORTH)).toBeDefined()
-      expect(graph.getAllNodes().length).toBe(101)
+      // Verify graph still works by sampling connections
+      // Node0 NORTH gets overwritten multiple times; last write is at count=96 (j=97)
+      expect(graph.getConnection('node0', Direction.NORTH)?.target).toBe('node97')
+      expect(graph.getAllNodes()).toHaveLength(101)
+      expect(graph.getAllNodes()).toContain('node0')
+      expect(graph.getAllNodes()).toContain('node100')
     })
 
     it('pathfinding completes in reasonable time', () => {
@@ -1071,7 +1117,10 @@ describe('Edge Cases', () => {
       const start = Date.now()
       const path = graph.findPath('node0', 'node99')
       const elapsed = Date.now() - start
-      expect(path).toBeDefined()
+      const pathResult = path as string[]
+      expect(pathResult).toHaveLength(100)
+      expect(pathResult[0]).toBe('node0')
+      expect(pathResult[99]).toBe('node99')
       expect(elapsed).toBeLessThan(1000) // Should complete in < 1 second
     })
   })

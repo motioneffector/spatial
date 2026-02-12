@@ -72,7 +72,7 @@ describe('Gate System', () => {
 
     it('throws ValidationError if connection doesn\'t exist', () => {
       expect(() => graph.setGate('node1', Direction.EAST, { id: 'gate1' })).toThrow(
-        ValidationError
+        /does not exist/
       )
     })
   })
@@ -107,7 +107,7 @@ describe('Gate System', () => {
 
     it('throws ValidationError if gate doesn\'t exist', () => {
       expect(() => graph.updateGate('node1', Direction.EAST, { locked: false })).toThrow(
-        ValidationError
+        /does not exist/
       )
     })
   })
@@ -115,6 +115,7 @@ describe('Gate System', () => {
   describe('removeGate()', () => {
     it('removes gate from connection', () => {
       graph.setGate('node1', Direction.NORTH, { id: 'gate1' })
+      expect(graph.getGate('node1', Direction.NORTH)?.id).toBe('gate1')
       graph.removeGate('node1', Direction.NORTH)
       expect(graph.getGate('node1', Direction.NORTH)).toBeNull()
     })
@@ -139,11 +140,16 @@ describe('Gate System', () => {
     })
 
     it('returns null if no gate on connection', () => {
-      expect(graph.getGate('node1', Direction.NORTH)).toBeNull()
+      // Verify the connection exists (positive case verifies data)
+      expect(graph.getConnection('node1', Direction.NORTH)?.target).toBe('node2')
+      expect(graph.getGate('node1', Direction.NORTH)).toBe(null)
     })
 
     it('returns null if connection doesn\'t exist', () => {
-      expect(graph.getGate('node1', Direction.EAST)).toBeNull()
+      // Verify a valid gate can be retrieved on an existing connection
+      graph.setGate('node1', Direction.NORTH, { id: 'gate1' })
+      expect(graph.getGate('node1', Direction.NORTH)?.id).toBe('gate1')
+      expect(graph.getGate('node1', Direction.EAST)).toBe(null)
     })
   })
 })

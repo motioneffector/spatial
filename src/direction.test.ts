@@ -149,10 +149,14 @@ describe('Direction', () => {
 
     it('returns null for invalid direction string', () => {
       expect(Direction.parse('invalid')).toBeNull()
+      // Verify valid inputs do return concrete values
+      expect(Direction.parse('north')).toBe('NORTH')
     })
 
     it('returns null for empty string', () => {
       expect(Direction.parse('')).toBeNull()
+      // Verify valid inputs do return concrete values
+      expect(Direction.parse('south')).toBe('SOUTH')
     })
   })
 })

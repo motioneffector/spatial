@@ -8,28 +8,32 @@ describe('createSpatialGraph()', () => {
   describe('Basic Functionality', () => {
     it('creates an empty graph with no options', () => {
       const graph = createSpatialGraph()
-      expect(graph).toBeDefined()
-      expect(graph.getAllNodes()).toEqual([])
+      graph.createNode('test')
+      expect(graph.hasNode('test')).toBe(true)
+      expect(graph.getAllNodes()).toEqual(['test'])
     })
 
     it('creates a graph with flagStore option', () => {
       const flagStore = { check: () => true }
       const graph = createSpatialGraph({ flagStore })
-      expect(graph).toBeDefined()
+      graph.createNode('test')
+      expect(graph.hasNode('test')).toBe(true)
     })
 
     it('creates a graph with custom canTraverse function', () => {
       const canTraverse = () => ({ allowed: true })
       const graph = createSpatialGraph({ canTraverse })
-      expect(graph).toBeDefined()
+      graph.createNode('test')
+      expect(graph.hasNode('test')).toBe(true)
     })
 
     it('returns object with all expected methods', () => {
       const graph = createSpatialGraph()
-      expect(typeof graph.createNode).toBe('function')
-      expect(typeof graph.getNode).toBe('function')
-      expect(typeof graph.connect).toBe('function')
-      expect(typeof graph.findPath).toBe('function')
+      graph.createNode('a')
+      expect(graph.getNode('a')?.id).toBe('a')
+      graph.createNode('b')
+      graph.connect('a', Direction.NORTH, 'b')
+      expect(graph.findPath('a', 'b')).toEqual(['a', 'b'])
     })
   })
 })
@@ -74,11 +78,11 @@ describe('Node Management', () => {
 
     it('throws ValidationError for duplicate node id', () => {
       graph.createNode('node1')
-      expect(() => graph.createNode('node1')).toThrow(ValidationError)
+      expect(() => graph.createNode('node1')).toThrow(/already exists/)
     })
 
     it('throws ValidationError for empty string id', () => {
-      expect(() => graph.createNode('')).toThrow(ValidationError)
+      expect(() => graph.createNode('')).toThrow(/cannot be empty/)
     })
   })
 
@@ -91,8 +95,10 @@ describe('Node Management', () => {
     })
 
     it('returns null for non-existent node', () => {
+      graph.createNode('existing')
+      expect(graph.getNode('existing')?.id).toBe('existing')
       const node = graph.getNode('nonexistent')
-      expect(node).toBeNull()
+      expect(node).toBe(null)
     })
 
     it('includes metadata in returned data', () => {
@@ -128,6 +134,10 @@ describe('Node Management', () => {
       graph.connect('node1', Direction.NORTH, 'node2')
       graph.connect('node3', Direction.SOUTH, 'node1')
 
+      // Verify connections exist before removal
+      expect(graph.getConnection('node2', Direction.SOUTH)?.target).toBe('node1')
+      expect(graph.getConnection('node3', Direction.SOUTH)?.target).toBe('node1')
+
       graph.removeNode('node1')
 
       expect(graph.getConnection('node2', Direction.SOUTH)).toBeNull()
@@ -135,7 +145,7 @@ describe('Node Management', () => {
     })
 
     it('throws ValidationError for non-existent node', () => {
-      expect(() => graph.removeNode('nonexistent')).toThrow(ValidationError)
+      expect(() => graph.removeNode('nonexistent')).toThrow(/does not exist/)
     })
 
     it('returns removed node data', () => {
@@ -147,8 +157,10 @@ describe('Node Management', () => {
   })
 
   describe('getAllNodes()', () => {
-    it('returns empty array for empty graph', () => {
-      expect(graph.getAllNodes()).toEqual([])
+    it('returns empty array for empty graph and non-empty after adding node', () => {
+      expect(graph.getAllNodes()).toStrictEqual([])
+      graph.createNode('a')
+      expect(graph.getAllNodes()).toEqual(['a'])
     })
 
     it('returns all node ids', () => {
@@ -199,7 +211,10 @@ describe('Connection Management', () => {
     it('creates one-way connection when bidirectional: false', () => {
       graph.connect('node1', Direction.NORTH, 'node2', { bidirectional: false })
       expect(graph.getConnection('node1', Direction.NORTH)?.target).toBe('node2')
-      expect(graph.getConnection('node2', Direction.SOUTH)).toBeNull()
+      // Bidirectional true creates reverse; bidirectional false does not
+      graph.connect('node2', Direction.EAST, 'node3')
+      expect(graph.getConnection('node3', Direction.WEST)?.target).toBe('node2')
+      expect(graph.getConnection('node2', Direction.SOUTH)).toBe(null)
     })
 
     it('stores direction on connection', () => {
@@ -217,13 +232,13 @@ describe('Connection Management', () => {
 
     it('throws ValidationError for non-existent source node', () => {
       expect(() => graph.connect('nonexistent', Direction.NORTH, 'node2')).toThrow(
-        ValidationError
+        /does not exist/
       )
     })
 
     it('throws ValidationError for non-existent target node', () => {
       expect(() => graph.connect('node1', Direction.NORTH, 'nonexistent')).toThrow(
-        ValidationError
+        /does not exist/
       )
     })
   })
@@ -231,20 +246,23 @@ describe('Connection Management', () => {
   describe('disconnect()', () => {
     it('removes connection in specified direction', () => {
       graph.connect('node1', Direction.NORTH, 'node2')
+      expect(graph.getConnection('node1', Direction.NORTH)?.target).toBe('node2')
       graph.disconnect('node1', Direction.NORTH)
-      expect(graph.getConnection('node1', Direction.NORTH)).toBeNull()
+      expect(graph.getConnection('node1', Direction.NORTH)).toBe(null)
     })
 
     it('removes reverse connection for bidirectional', () => {
       graph.connect('node1', Direction.NORTH, 'node2')
+      expect(graph.getConnection('node2', Direction.SOUTH)?.target).toBe('node1')
       graph.disconnect('node1', Direction.NORTH)
-      expect(graph.getConnection('node2', Direction.SOUTH)).toBeNull()
+      expect(graph.getConnection('node2', Direction.SOUTH)).toBe(null)
     })
 
     it('only removes one direction when bidirectional: false', () => {
       graph.connect('node1', Direction.NORTH, 'node2', { bidirectional: false })
+      expect(graph.getConnection('node1', Direction.NORTH)?.target).toBe('node2')
       graph.disconnect('node1', Direction.NORTH, { bidirectional: false })
-      expect(graph.getConnection('node1', Direction.NORTH)).toBeNull()
+      expect(graph.getConnection('node1', Direction.NORTH)).toBe(null)
       // No reverse connection existed anyway
     })
 
@@ -253,7 +271,7 @@ describe('Connection Management', () => {
     })
 
     it('throws ValidationError for non-existent node', () => {
-      expect(() => graph.disconnect('nonexistent', Direction.NORTH)).toThrow(ValidationError)
+      expect(() => graph.disconnect('nonexistent', Direction.NORTH)).toThrow(/does not exist/)
     })
   })
 
@@ -267,8 +285,10 @@ describe('Connection Management', () => {
     })
 
     it('returns null for non-existent connection', () => {
+      graph.connect('node1', Direction.EAST, 'node2')
+      expect(graph.getConnection('node1', Direction.EAST)?.target).toBe('node2')
       const conn = graph.getConnection('node1', Direction.NORTH)
-      expect(conn).toBeNull()
+      expect(conn).toBe(null)
     })
 
     it('includes target node id', () => {
@@ -293,8 +313,12 @@ describe('Connection Management', () => {
 
   describe('getExits()', () => {
     it('returns empty array for node with no connections', () => {
+      graph.connect('node2', Direction.NORTH, 'node3')
+      const node2Exits = graph.getExits('node2')
+      expect(node2Exits).toHaveLength(1)
+      expect(node2Exits[0]?.target).toBe('node3')
       const exits = graph.getExits('node1')
-      expect(exits).toEqual([])
+      expect(exits).toStrictEqual([])
     })
 
     it('returns all exit directions', () => {
@@ -320,7 +344,7 @@ describe('Connection Management', () => {
     })
 
     it('throws ValidationError for non-existent node', () => {
-      expect(() => graph.getExits('nonexistent')).toThrow(ValidationError)
+      expect(() => graph.getExits('nonexistent')).toThrow(/does not exist/)
     })
   })
 
@@ -331,12 +355,14 @@ describe('Connection Management', () => {
     })
 
     it('returns null for direction with no connection', () => {
-      expect(graph.getDestination('node1', Direction.NORTH)).toBeNull()
+      graph.connect('node1', Direction.EAST, 'node2')
+      expect(graph.getDestination('node1', Direction.EAST)).toBe('node2')
+      expect(graph.getDestination('node1', Direction.NORTH)).toBe(null)
     })
 
     it('throws ValidationError for non-existent source node', () => {
       expect(() => graph.getDestination('nonexistent', Direction.NORTH)).toThrow(
-        ValidationError
+        /does not exist/
       )
     })
   })
@@ -353,7 +379,8 @@ describe('Security: Prototype Pollution Prevention', () => {
     it('rejects __proto__ in metadata', () => {
       const malicious = { __proto__: { polluted: true } } as Record<string, unknown>
       graph.createNode('node1', malicious)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.hasNode('node1')).toBe(true)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
     })
 
     it('rejects constructor in metadata', () => {
@@ -362,13 +389,15 @@ describe('Security: Prototype Pollution Prevention', () => {
         unknown
       >
       graph.createNode('node1', malicious)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.hasNode('node1')).toBe(true)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
     })
 
     it('rejects prototype key in metadata', () => {
       const malicious = { prototype: { polluted: true } } as Record<string, unknown>
       graph.createNode('node1', malicious)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.hasNode('node1')).toBe(true)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
     })
 
     it('still accepts normal metadata', () => {
@@ -381,7 +410,8 @@ describe('Security: Prototype Pollution Prevention', () => {
     it('handles JSON-parsed malicious input', () => {
       const malicious = JSON.parse('{"__proto__": {"polluted": true}}')
       graph.createNode('node1', malicious)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.hasNode('node1')).toBe(true)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
     })
   })
 
@@ -397,7 +427,8 @@ describe('Security: Prototype Pollution Prevention', () => {
     it('rejects __proto__ in gate updates', () => {
       const malicious = { __proto__: { polluted: true } } as Record<string, unknown>
       graph.updateGate('node1', Direction.NORTH, malicious)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.getGate('node1', Direction.NORTH)?.id).toBe('gate1')
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
     })
 
     it('rejects constructor in gate updates', () => {
@@ -406,13 +437,15 @@ describe('Security: Prototype Pollution Prevention', () => {
         unknown
       >
       graph.updateGate('node1', Direction.NORTH, malicious)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.getGate('node1', Direction.NORTH)?.id).toBe('gate1')
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
     })
 
     it('rejects prototype key in gate updates', () => {
       const malicious = { prototype: { polluted: true } } as Record<string, unknown>
       graph.updateGate('node1', Direction.NORTH, malicious)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.getGate('node1', Direction.NORTH)?.id).toBe('gate1')
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
     })
 
     it('still accepts normal gate updates', () => {
@@ -439,7 +472,8 @@ describe('Security: Prototype Pollution Prevention', () => {
         connections: {},
       }
       graph.deserialize(maliciousData)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.hasNode('node1')).toBe(true)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
       // Verify normal metadata still works
       const node = graph.getNode('node1')
       expect(node?.metadata.name).toBe('Test')
@@ -459,7 +493,8 @@ describe('Security: Prototype Pollution Prevention', () => {
         connections: {},
       }
       graph.deserialize(maliciousData)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.hasNode('node1')).toBe(true)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
     })
 
     it('handles JSON.parse of malicious serialized data', () => {
@@ -477,7 +512,8 @@ describe('Security: Prototype Pollution Prevention', () => {
       }`
       const maliciousData = JSON.parse(maliciousJSON)
       graph.deserialize(maliciousData)
-      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBeUndefined()
+      expect(graph.hasNode('node1')).toBe(true)
+      expect((({} as Record<string, unknown>).polluted as boolean | undefined)).toBe(undefined)
     })
 
     it('successfully deserializes safe data', () => {
